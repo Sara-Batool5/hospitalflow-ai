@@ -75,7 +75,7 @@ export async function PATCH(request: Request) {
       });
 
     if (auditError) {
-      console.error("Status changed, but its audit entry could not be saved.");
+      console.error("Audit log insert failed:", auditError.message);
 
       return NextResponse.json(
         {
