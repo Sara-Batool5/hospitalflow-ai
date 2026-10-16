@@ -228,17 +228,61 @@ export default function Home() {
     }
   }
 
-  function updateIssueStatus(id: string, status: IssueStatus) {
-    setIssues((current) =>
-      current.map((issue) =>
-        issue.id === id ? { ...issue, status } : issue
-      )
-    );
-
-    setSelectedIssue((current) =>
-      current?.id === id ? { ...current, status } : current
-    );
+  
+  async function updateIssueStatus(
+    id: string,
+    status: IssueStatus
+  ): Promise<boolean> {
+    try {
+      setScanMessage(`Saving ${id} status…`);
+      setDataError("");
+  
+      const response = await fetch("/api/issues/status", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id, status }),
+      });
+  
+      const result = await response.json();
+  
+      if (!response.ok || !result.ok) {
+        throw new Error(
+          result.message || "Could not save the issue status."
+        );
+      }
+  
+      await loadIssues();
+  
+      setSelectedIssue((current) => {
+        if (current?.id !== id) return current;
+  
+        return {
+          ...current,
+          status,
+        };
+      });
+  
+      setScanMessage(
+        result.warning
+          ? `${id} status saved, but the audit log could not be saved.`
+          : `${id} status saved to Supabase.`
+      );
+  
+      return true;
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Could not save the issue status.";
+  
+      setDataError(message);
+      setScanMessage("");
+      return false;
+    }
   }
+
 
   const isOverview = activeNav === "Overview";
   const isApprovals = activeNav === "Approvals";
@@ -829,14 +873,19 @@ export default function Home() {
             <div className="modal-actions">
               <button className="secondary-button" onClick={() => setSelectedIssue(null)}>Close</button>
               {selectedIssue.status !== "Resolved" && (
-                <button className="primary-button" onClick={() => {
-                  updateIssueStatus(selectedIssue.id, "Resolved");
-                  setSelectedIssue(null);
-                  setScanMessage(`${selectedIssue.id} marked resolved in this demo session.`);
+                <button className="primary-button" onClick={async () => {
+                  const success = await updateIssueStatus(
+                    selectedIssue.id,
+                    "Resolved"
+                  );
+                
+                  if (success) {
+                    setSelectedIssue(null);
+                  }
                 }}><Check size={16} /> Mark resolved</button>
               )}
               {selectedIssue.status === "Open" && (
-                <button className="secondary-button" onClick={() => updateIssueStatus(selectedIssue.id, "In review")}><ShieldCheck size={16} /> Review</button>
+                <button className="secondary-button" onClick={async () => {await updateIssueStatus(selectedIssue.id, "In review");}}><ShieldCheck size={16} /> Review</button>
               )}
             </div>
           </section>
