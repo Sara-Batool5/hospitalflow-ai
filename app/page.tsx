@@ -53,6 +53,15 @@ type Issue = {
   recommendation: string;
 };
 
+type AuditEvent = {
+  id: string;
+  issue_id: string | null;
+  action_id: string | null;
+  event_type: string;
+  actor_type: string;
+  details: Record<string, unknown> | null;
+  created_at: string;
+};
 
 const navGroups = [
   {
@@ -107,6 +116,10 @@ export default function Home() {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [dataError, setDataError] = useState("");
+  
+  const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditError, setAuditError] = useState("");
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [scanRunning, setScanRunning] = useState(false);
   const [scanMessage, setScanMessage] = useState("");
@@ -144,9 +157,46 @@ export default function Home() {
       setDataLoading(false);
     }
   }
+
+  async function loadAuditEvents() {
+    setAuditLoading(true);
+    setAuditError("");
+  
+    try {
+      const response = await fetch("/api/audit", {
+        method: "GET",
+        cache: "no-store",
+      });
+  
+      const result = await response.json();
+  
+      if (
+        !response.ok ||
+        !result.ok ||
+        !Array.isArray(result.events)
+      ) {
+        throw new Error(
+          result.message || "Could not load audit history."
+        );
+      }
+  
+      setAuditEvents(result.events as AuditEvent[]);
+    } catch (error) {
+      console.error("Failed to load audit history:", error);
+  
+      setAuditError(
+        error instanceof Error
+          ? error.message
+          : "Could not connect to the audit service."
+      );
+    } finally {
+      setAuditLoading(false);
+    }
+  }
   
   useEffect(() => {
     void loadIssues();
+    void loadAuditEvents();
   }, []);
   
   const openCount = issues.filter((issue) => issue.status === "Open").length;
@@ -254,6 +304,7 @@ export default function Home() {
       }
   
       await loadIssues();
+      await loadAuditEvents();
   
       setSelectedIssue((current) => {
         if (current?.id !== id) return current;
@@ -558,12 +609,119 @@ export default function Home() {
                   <h1>{activeNav}</h1>
                   <p>{activeNav === "Operations timeline" ? "A chronological view of findings, recommendations, and human decisions." : "Review operational activity and audit evidence."}</p>
                 </div>
+              </div> 
+            <div className="panel">
+              <div className="panel-header">
+                <div>
+                  <h2>
+                    {activeNav === "Reports & audit"
+                      ? "Audit event history"
+                      : "Operations event timeline"}
+                  </h2>
+                  <p>
+                    Recorded events retrieved from the Supabase audit log.
+                  </p>
+                </div>
+            
+                <button
+                  className="secondary-button compact-button"
+                  onClick={loadAuditEvents}
+                  disabled={auditLoading}
+                >
+                  <RefreshCw
+                    size={14}
+                    className={auditLoading ? "spin" : ""}
+                  />
+                  {auditLoading ? "Refreshing…" : "Refresh history"}
+                </button>
               </div>
-              <div className="panel empty-state">
-                <div className="empty-state-icon"><ShieldCheck size={25} /></div>
-                <h3>{activeNav === "Operations timeline" ? "Your timeline starts here" : "Audit reporting is coming next"}</h3>
-                <p>We will connect this view to recorded agent events and persistent audit history in a later step. No actions are being executed in the background.</p>
-                <button className="secondary-button" onClick={() => setActiveNav("Overview")}>Back to overview <ArrowRight size={15} /></button>
+            
+              {auditError && (
+                <div className="inline-feedback" role="alert">
+                  <AlertTriangle size={17} />
+                  {auditError}
+                  <button
+                    className="secondary-button compact-button"
+                    onClick={loadAuditEvents}
+                    disabled={auditLoading}
+                  >
+                    Try again
+                  </button>
+                </div>
+              )}
+            
+              {auditLoading && auditEvents.length === 0 && (
+                <div className="inline-feedback">
+                  <RefreshCw size={17} className="spin" />
+                  Loading audit history…
+                </div>
+              )}
+            
+              {!auditLoading && !auditError && auditEvents.length === 0 && (
+                <div className="empty-state">
+                  <div className="empty-state-icon">
+                    <ShieldCheck size={25} />
+                  </div>
+                  <h3>No audit events yet</h3>
+                  <p>
+                    Recorded workflow events will appear here when available.
+                  </p>
+                </div>
+              )}
+            
+              {auditEvents.length > 0 && (
+                <div className="workflow-list">
+                  {auditEvents.map((event, index) => {
+                    const reference =
+                      typeof event.details?.synthetic_reference === "string"
+                        ? event.details.synthetic_reference
+                        : null;
+            
+                    const note =
+                      typeof event.details?.note === "string"
+                        ? event.details.note
+                        : null;
+            
+                    return (
+                      <div className="workflow-row" key={event.id}>
+                        <div className="workflow-number">
+                          {String(index + 1).padStart(2, "0")}
+                        </div>
+            
+                        <div className="workflow-icon">
+                          <ShieldCheck size={20} />
+                        </div>
+            
+                        <div className="workflow-copy">
+                          <strong>
+                            {event.event_type.replaceAll("_", " ")}
+                          </strong>
+            
+                          <p>
+                            {reference
+                              ? `Issue: ${reference}`
+                              : event.issue_id
+                                ? `Issue record: ${event.issue_id}`
+                                : "System workflow event"}
+                          </p>
+            
+                          {note && <p>{note}</p>}
+            
+                          <p>
+                            {new Date(event.created_at).toLocaleString()} ·
+                            {" "}{event.actor_type}
+                          </p>
+                        </div>
+            
+                        <span className="coming-soon">RECORDED</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            
+              <div className="panel-footer-button">
+                Showing up to 100 most recent events.
               </div>
             </section>
           ) : (
