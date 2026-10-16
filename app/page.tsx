@@ -723,9 +723,10 @@ export default function Home() {
               <div className="panel-footer-button">
                 Showing up to 100 most recent events.
               </div>
+            </div>
             </section>
-          ) : (
-            <>
+            ) : (
+              <>
               <div className="page-heading">
                 <div>
                   <div className="eyebrow">
