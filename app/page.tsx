@@ -404,6 +404,27 @@ export default function Home() {
         </header>
 
         <div className="page-content">
+          {dataLoading && (
+            <div className="inline-feedback">
+              <RefreshCw size={17} className="spin" />
+              Loading operational issues from the database…
+            </div>
+          )}
+          
+          {dataError && (
+            <div className="inline-feedback" role="alert">
+              <AlertTriangle size={17} />
+              {dataError}
+              <button
+                className="secondary-button compact-button"
+                onClick={runScan}
+                disabled={scanRunning}
+              >
+                Try again
+              </button>
+            </div>
+          )}
+          
           {activeNav === "Settings" ? (
             <section className="secondary-page">
               <div className="page-heading">
