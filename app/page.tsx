@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -53,83 +53,6 @@ type Issue = {
   recommendation: string;
 };
 
-const initialIssues: Issue[] = [
-  {
-    id: "HF-1042",
-    title: "Discharge documentation pending",
-    description:
-      "A discharge workflow is awaiting completion of its administrative documentation.",
-    category: "Discharge",
-    department: "Discharge Desk",
-    priority: "Critical",
-    status: "Open",
-    age: "1h 42m",
-    ageMinutes: 102,
-    icon: "file",
-    recommendation:
-      "Ask the Discharge Desk to review the outstanding documentation and confirm the next administrative step."
-  },
-  {
-    id: "HF-1041",
-    title: "Bed status requires verification",
-    description:
-      "A bed is marked occupied while a separate operational record indicates the patient has left.",
-    category: "Bed management",
-    department: "Bed Management",
-    priority: "High",
-    status: "Open",
-    age: "56m",
-    ageMinutes: 56,
-    icon: "bed",
-    recommendation:
-      "Request a status check from Bed Management before changing the bed record."
-  },
-  {
-    id: "HF-1040",
-    title: "Diagnostic report not acknowledged",
-    description:
-      "A simulated diagnostic workflow has no recorded receiving-department acknowledgment.",
-    category: "Diagnostics",
-    department: "Diagnostics",
-    priority: "High",
-    status: "In review",
-    age: "43m",
-    ageMinutes: 43,
-    icon: "report",
-    recommendation:
-      "Ask the receiving department to confirm receipt and record the administrative acknowledgment."
-  },
-  {
-    id: "HF-1039",
-    title: "Referral confirmation overdue",
-    description:
-      "A referral coordination record is awaiting confirmation from the receiving department.",
-    category: "Referral",
-    department: "Referral Desk",
-    priority: "Medium",
-    status: "Open",
-    age: "28m",
-    ageMinutes: 28,
-    icon: "referral",
-    recommendation:
-      "Send a draft follow-up request to the Referral Desk for human review."
-  },
-  {
-    id: "HF-1038",
-    title: "Missing department acknowledgment",
-    description:
-      "A simulated internal handoff is missing its expected acknowledgment field.",
-    category: "Handoff",
-    department: "Ward Administration",
-    priority: "Medium",
-    status: "Open",
-    age: "19m",
-    ageMinutes: 19,
-    icon: "report",
-    recommendation:
-      "Ask Ward Administration to verify the handoff and complete the missing administrative field."
-  }
-];
 
 const navGroups = [
   {
@@ -181,7 +104,9 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("All priorities");
   const [statusFilter, setStatusFilter] = useState("All statuses");
-  const [issues, setIssues] = useState(initialIssues);
+  const [issues, setIssues] = useState<Issue[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [dataError, setDataError] = useState("");
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [scanRunning, setScanRunning] = useState(false);
   const [scanMessage, setScanMessage] = useState("");
@@ -189,6 +114,41 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
+  async function loadIssues() {
+    setDataError("");
+
+    try {
+      const response = await fetch("/api/issues", {
+        method: "GET",
+        cache: "no-store",
+      });
+  
+      const result = await response.json();
+  
+      if (!response.ok || !result.ok || !Array.isArray(result.issues)) {
+        throw new Error(
+          result.message || "Could not load operational issues."
+        );
+      }
+  
+      setIssues(result.issues as Issue[]);
+    } catch (error) {
+      console.error("Failed to load issues:", error);
+  
+      setDataError(
+        error instanceof Error
+          ? error.message
+          : "Could not connect to the issues service."
+      );
+    } finally {
+      setDataLoading(false);
+    }
+  }
+  
+  useEffect(() => {
+    void loadIssues();
+  }, []);
+  
   const openCount = issues.filter((issue) => issue.status === "Open").length;
   const criticalCount = issues.filter(
     (issue) => issue.priority === "Critical" && issue.status !== "Resolved"
@@ -226,18 +186,46 @@ export default function Home() {
     });
   }, [issues, searchQuery, priorityFilter, statusFilter, activeNav]);
 
-  function runScan() {
+  async function runScan() {
     if (scanRunning) return;
-
+  
     setScanRunning(true);
-    setScanMessage("Checking synthetic operational records…");
-
-    window.setTimeout(() => {
-      setScanRunning(false);
+    setScanMessage("Loading the latest operational records from Supabase…");
+  
+    try {
+      setDataError("");
+  
+      const response = await fetch("/api/issues", {
+        method: "GET",
+        cache: "no-store",
+      });
+  
+      const result = await response.json();
+  
+      if (!response.ok || !result.ok || !Array.isArray(result.issues)) {
+        throw new Error(
+          result.message || "Could not refresh operational issues."
+        );
+      }
+  
+      setIssues(result.issues as Issue[]);
+  
       setScanMessage(
-        "Demo scan complete. The sample issue list is ready for review."
+        `Data refreshed successfully. ${result.issues.length} operational issues loaded from Supabase.`
       );
-    }, 1100);
+    } catch (error) {
+      console.error("Failed to refresh issues:", error);
+  
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Could not refresh operational issues.";
+  
+      setDataError(message);
+      setScanMessage("Refresh failed. Please try again.");
+    } finally {
+      setScanRunning(false);
+    }
   }
 
   function updateIssueStatus(id: string, status: IssueStatus) {
