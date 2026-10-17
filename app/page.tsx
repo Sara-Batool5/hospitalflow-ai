@@ -254,6 +254,54 @@ export default function Home() {
     }
   }
 
+  async function handleApprovalDecision(
+    approvalId: string,
+    decision: "approve" | "reject"
+  ) {
+    const confirmed = window.confirm(
+      decision === "approve"
+        ? "Record approval for this demo workflow action?"
+        : "Reject this demo workflow action?"
+    );
+  
+    if (!confirmed) return;
+  
+    setApprovalsError("");
+  
+    try {
+      const response = await fetch("/api/approvals/decision", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ approvalId, decision }),
+      });
+  
+      const result = await response.json();
+  
+      if (!response.ok || !result.ok) {
+        throw new Error(
+          result.message || "Could not save the decision."
+        );
+      }
+  
+      await Promise.all([
+        loadApprovals(),
+        loadAuditEvents(),
+      ]);
+  
+      window.alert(result.message);
+    } catch (error) {
+      console.error("Approval decision failed:", error);
+  
+      setApprovalsError(
+        error instanceof Error
+          ? error.message
+          : "Could not save the approval decision."
+      );
+    }
+  }
+
   useEffect(() => {
     void loadIssues();
     void loadAuditEvents();
@@ -1130,9 +1178,35 @@ export default function Home() {
                           </p>
                         </div>
               
-                        <span className="coming-soon">
-                          {approval.status.replaceAll("_", " ").toUpperCase()}
-                        </span>
+                        <div className="approval-actions">
+                          <span className="coming-soon">
+                            {approval.status.replaceAll("_", " ").toUpperCase()}
+                          </span>
+                        
+                          {["pending", "awaiting_approval", "requires_human_approval"].includes(
+                            approval.status
+                          ) && (
+                            <div className="approval-buttons">
+                              <button
+                                className="primary-button"
+                                onClick={() =>
+                                  void handleApprovalDecision(approval.id, "approve")
+                                }
+                              >
+                                Approve
+                              </button>
+                        
+                              <button
+                                className="secondary-button"
+                                onClick={() =>
+                                  void handleApprovalDecision(approval.id, "reject")
+                                }
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
