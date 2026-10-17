@@ -999,7 +999,7 @@ export default function Home() {
                 </>
               )}
 
-              {(activeNav === "All issues" || isApprovals) && (
+              {activeNav === "All issues" && (
                 <section className="panel all-issues-panel">
                   <div className="panel-header issues-table-header">
                     <div>
@@ -1059,6 +1059,86 @@ export default function Home() {
                   </div>
                 </section>
               )}
+              
+              {isApprovals && (
+                <section className="panel all-issues-panel">
+                  <div className="panel-header">
+                    <div>
+                      <h2>Items awaiting human approval</h2>
+                      <p>
+                        Approval actions retrieved from Supabase.
+                        {" "}{approvals.length} record{approvals.length === 1 ? "" : "s"} found.
+                      </p>
+                    </div>
+                    <button
+                      className="secondary-button compact-button"
+                      onClick={loadApprovals}
+                      disabled={approvalsLoading}
+                    >
+                      <RefreshCw
+                        size={14}
+                        className={approvalsLoading ? "spin" : ""}
+                      />
+                      {approvalsLoading ? "Refreshing…" : "Refresh approvals"}
+                    </button>
+                  </div>
+              
+                  {approvalsError && (
+                    <div className="inline-feedback" role="alert">
+                      <AlertTriangle size={17} />
+                      {approvalsError}
+                    </div>
+                  )}
+              
+                  {approvalsLoading && approvals.length === 0 && (
+                    <div className="inline-feedback">
+                      <RefreshCw size={17} className="spin" />
+                      Loading approval records…
+                    </div>
+                  )}
+              
+                  {!approvalsLoading && !approvalsError && approvals.length === 0 && (
+                    <div className="empty-state">
+                      <ShieldCheck size={25} />
+                      <h3>No approval records found</h3>
+                      <p>Refresh to check for pending workflow actions.</p>
+                    </div>
+                  )}
+              
+                  <div className="workflow-list">
+                    {approvals.map((approval) => (
+                      <div className="workflow-row" key={approval.id}>
+                        <div className="workflow-icon">
+                          <ShieldCheck size={20} />
+                        </div>
+              
+                        <div className="workflow-copy">
+                          <strong>
+                            {approval.operational_issues?.title || approval.action_type}
+                          </strong>
+                          <p>{approval.description}</p>
+                          <p>
+                            Department: {approval.departments?.name || "Unassigned"}
+                          </p>
+                          <p>
+                            Issue: {approval.operational_issues?.synthetic_reference || "Demo record"}
+                            {" · "}
+                            Priority: {approval.operational_issues?.priority || "Unknown"}
+                          </p>
+                          <p>
+                            Workflow status: {approval.status.replaceAll("_", " ")}
+                          </p>
+                        </div>
+              
+                        <span className="coming-soon">
+                          {approval.status.replaceAll("_", " ").toUpperCase()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
             </>
           )}
 
