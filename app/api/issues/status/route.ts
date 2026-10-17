@@ -66,7 +66,7 @@ export async function PATCH(request: Request) {
       .insert({
         issue_id: updatedIssue.id,
         event_type: "demo_status_updated",
-        actor_type: "demo_user",
+        actor_type: "system",
         details: {
           synthetic_reference: updatedIssue.synthetic_reference,
           new_status: updatedIssue.status,
