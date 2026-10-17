@@ -63,6 +63,27 @@ type AuditEvent = {
   created_at: string;
 };
 
+type Approval = {
+  id: string;
+  issue_id: string;
+  action_type: string;
+  description: string;
+  status: string;
+  requires_human_approval: boolean;
+  assigned_department_id: string | null;
+  created_at: string;
+  completed_at: string | null;
+  operational_issues: {
+    synthetic_reference: string;
+    title: string;
+    priority: string;
+    status: string;
+  } | null;
+  departments: {
+    name: string;
+  } | null;
+};
+
 const navGroups = [
   {
     label: "WORKSPACE",
@@ -120,6 +141,9 @@ export default function Home() {
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditError, setAuditError] = useState("");
+  const [approvals, setApprovals] = useState<Approval[]>([]);
+  const [approvalsLoading, setApprovalsLoading] = useState(false);
+  const [approvalsError, setApprovalsError] = useState("");
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [scanRunning, setScanRunning] = useState(false);
   const [scanMessage, setScanMessage] = useState("");
@@ -193,10 +217,47 @@ export default function Home() {
       setAuditLoading(false);
     }
   }
+
+  async function loadApprovals() {
+    setApprovalsLoading(true);
+    setApprovalsError("");
   
+    try {
+      const response = await fetch("/api/approvals", {
+        method: "GET",
+        cache: "no-store",
+      });
+  
+      const result = await response.json();
+  
+      if (
+        !response.ok ||
+        !result.ok ||
+        !Array.isArray(result.approvals)
+      ) {
+        throw new Error(
+          result.message || "Could not load approval records."
+        );
+      }
+  
+      setApprovals(result.approvals as Approval[]);
+    } catch (error) {
+      console.error("Failed to load approvals:", error);
+  
+      setApprovalsError(
+        error instanceof Error
+          ? error.message
+          : "Could not connect to the approval service."
+      );
+    } finally {
+      setApprovalsLoading(false);
+    }
+  }
+
   useEffect(() => {
     void loadIssues();
     void loadAuditEvents();
+    void loadApprovals();
   }, []);
   
   const openCount = issues.filter((issue) => issue.status === "Open").length;
