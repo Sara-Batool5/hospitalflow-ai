@@ -84,6 +84,14 @@ type Approval = {
   } | null;
 };
 
+type Department = {
+  id: string;
+  name: string;
+  description: string | null;
+  totalIssues: number;
+  openIssues: number;
+};
+
 const navGroups = [
   {
     label: "WORKSPACE",
@@ -150,6 +158,10 @@ export default function Home() {
   const [showFilters, setShowFilters] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [departmentsLoading, setDepartmentsLoading] = useState(false);
+  const [departmentsError, setDepartmentsError] = useState("");
 
   async function loadIssues() {
     setDataError("");
@@ -254,6 +266,33 @@ export default function Home() {
     }
   }
 
+  async function loadDepartments() {
+    setDepartmentsLoading(true);
+    setDepartmentsError("");
+  
+    try {
+      const response = await fetch("/api/departments", {
+        cache: "no-store",
+      });
+  
+      const result = await response.json();
+  
+      if (!response.ok || !result.ok || !Array.isArray(result.departments)) {
+        throw new Error(result.message || "Could not load departments.");
+      }
+  
+      setDepartments(result.departments as Department[]);
+    } catch (error) {
+      setDepartmentsError(
+        error instanceof Error
+          ? error.message
+          : "Could not load departments."
+      );
+    } finally {
+      setDepartmentsLoading(false);
+    }
+  }
+ 
   async function handleApprovalDecision(
     approvalId: string,
     decision: "approve" | "reject"
@@ -306,6 +345,7 @@ export default function Home() {
     void loadIssues();
     void loadAuditEvents();
     void loadApprovals();
+    void loadDepartments();
   }, []);
   
   const openCount = issues.filter((issue) => issue.status === "Open").length;
@@ -690,24 +730,92 @@ export default function Home() {
                 <div>
                   <div className="eyebrow">HOSPITAL OPERATIONS</div>
                   <h1>Departments</h1>
-                  <p>Operational issues grouped by responsible department.</p>
+                  <p>
+                    Department information and issue counts loaded from Supabase.
+                  </p>
                 </div>
+
+                <button
+                  className="secondary-button"
+                  onClick={() => void loadDepartments()}
+                  disabled={departmentsLoading}
+                >
+                  <RefreshCw
+                    size={16}
+                    className={departmentsLoading ? "spin" : ""}
+                  />
+                  {departmentsLoading ? "Refreshing…" : "Refresh departments"}
+                </button>
               </div>
+
+              {departmentsError && (
+                <div className="inline-feedback" role="alert">
+                  <AlertTriangle size={17} />
+                  {departmentsError}
+                  <button
+                    className="secondary-button compact-button"
+                    onClick={() => void loadDepartments()}
+                    disabled={departmentsLoading}
+                  >
+                    Try again
+                  </button>
+                </div>
+              )}
+
+              {departmentsLoading && departments.length === 0 && (
+                <div className="inline-feedback">
+                  <RefreshCw size={17} className="spin" />
+                  Loading departments from Supabase…
+                </div>
+              )}
+
+              {!departmentsLoading &&
+                !departmentsError &&
+                departments.length === 0 && (
+                  <div className="empty-state">
+                    <Users size={25} />
+                    <h3>No departments found</h3>
+                    <p>
+                      No department records were returned by the database.
+                    </p>
+                  </div>
+                )}
+
               <div className="department-grid">
-                {["Discharge Desk", "Bed Management", "Diagnostics", "Referral Desk", "Ward Administration"].map((department) => {
-                  const count = issues.filter((issue) => issue.department === department && issue.status !== "Resolved").length;
-                  return (
-                    <button className="department-card" key={department} onClick={() => {
-                      setSearchQuery(department);
-                      setActiveNav("All issues");
-                    }}>
-                      <div className="department-card-icon"><Users size={20} /></div>
-                      <strong>{department}</strong>
-                      <span>{count} unresolved issue{count === 1 ? "" : "s"}</span>
-                      <ArrowRight size={16} />
+                {departments.map((department) => (
+                  <article className="panel" key={department.id}>
+                    <div className="department-card-icon">
+                      <Users size={20} />
+                    </div>
+
+                    <h3>{department.name}</h3>
+
+                    <p>
+                      {department.description ||
+                        "No description available."}
+                    </p>
+
+                    <div className="metric-foot">
+                      <span>Open issues</span>
+                      <strong>{department.openIssues}</strong>
+                    </div>
+
+                    <div className="metric-foot">
+                      <span>Total issues</span>
+                      <strong>{department.totalIssues}</strong>
+                    </div>
+
+                    <button
+                      className="text-button"
+                      onClick={() => {
+                        setSearchQuery(department.name);
+                        setActiveNav("All issues");
+                      }}
+                    >
+                      View issues <ArrowRight size={15} />
                     </button>
-                  );
-                })}
+                  </article>
+                ))}
               </div>
             </section>
           ) : activeNav === "Operations timeline" || activeNav === "Reports & audit" ? (
