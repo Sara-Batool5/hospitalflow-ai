@@ -36,7 +36,7 @@ export async function PATCH(request: Request) {
 
     const { data: existing, error: lookupError } = await supabase
       .from("workflow_actions")
-      .select("id, status, requires_human_approval")
+      .select("id, issue_id, status, requires_human_approval")
       .eq("id", approvalId)
       .maybeSingle();
 
@@ -90,6 +90,7 @@ export async function PATCH(request: Request) {
     const { error: auditError } = await supabase
       .from("audit_logs")
       .insert({
+        issue_id: existing.issue_id,
         action_id: approvalId,
         event_type:
           decision === "approve"
