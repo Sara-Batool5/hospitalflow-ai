@@ -889,11 +889,17 @@ export default function Home() {
               {auditEvents.length > 0 && (
                 <div className="workflow-list">
                   {auditEvents.map((event, index) => {
+                    const issueForAuditEvent = issues.find(
+                      (issue) =>
+                        issue.id === event.issue_id ||
+                        issue.id === event.details?.synthetic_reference
+                    );
+                    
                     const reference =
                       typeof event.details?.synthetic_reference === "string"
                         ? event.details.synthetic_reference
-                        : null;
-            
+                        : issueForAuditEvent?.id ?? null;
+
                     const note =
                       typeof event.details?.note === "string"
                         ? event.details.note
@@ -913,7 +919,7 @@ export default function Home() {
                           <strong>
                             {event.event_type.replaceAll("_", " ")}
                           </strong>
-            
+                          
                           <p>
                             {reference
                               ? `Issue: ${reference}`
