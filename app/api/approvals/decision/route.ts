@@ -36,7 +36,15 @@ export async function PATCH(request: Request) {
 
     const { data: existing, error: lookupError } = await supabase
       .from("workflow_actions")
-      .select("id, issue_id, status, requires_human_approval")
+      .select(`
+        id,
+        issue_id,
+        status,
+        requires_human_approval,
+        operational_issues (
+          synthetic_reference
+        )
+      `)
       .eq("id", approvalId)
       .maybeSingle();
 
@@ -100,6 +108,8 @@ export async function PATCH(request: Request) {
         details: {
           decision,
           source: "HospitalFlow AI synthetic demo",
+          synthetic_reference:
+            existing.operational_issues?.synthetic_reference ?? null,
           note:
             decision === "approve"
               ? "Demo approval recorded; no real-world task was executed."
