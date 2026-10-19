@@ -109,7 +109,7 @@ export async function PATCH(request: Request) {
           decision,
           source: "HospitalFlow AI synthetic demo",
           synthetic_reference:
-            existing.operational_issues?.synthetic_reference ?? null,
+            existing.operational_issues?.[0]?.synthetic_reference ?? null,
           note:
             decision === "approve"
               ? "Demo approval recorded; no real-world task was executed."
