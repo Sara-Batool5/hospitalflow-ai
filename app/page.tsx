@@ -181,6 +181,27 @@ export default function Home() {
       finding: string;
     }[];
   } | null>(null);
+  const [coordinatorResults, setCoordinatorResults] = useState<{
+    summary: {
+      totalRecords: number;
+      recommendationsGenerated: number;
+      actionRequired: number;
+      noActionRequired: number;
+    };
+    recommendations: {
+      reference: string;
+      title: string;
+      priority: string;
+      status: string;
+      recommendation: {
+        action: string;
+        reason: string;
+        assignedDepartment: string;
+        urgency: string;
+        requiresHumanReview: boolean;
+      };
+    }[];
+  } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -419,6 +440,7 @@ export default function Home() {
     setDataError("");
     setIntakeResults(null);
     setBottleneckResults(null);
+    setCoordinatorResults(null);
   
     try {
       const response = await fetch("/api/agents/run", {
@@ -458,7 +480,29 @@ export default function Home() {
           "The workflow response is missing one or more agent results."
         );
       }
-  
+
+      const coordinatorResponse = await fetch(
+        "/api/agents/coordinator",
+        {
+          method: "GET",
+          cache: "no-store",
+        }
+      );
+      
+      const coordinatorData = await coordinatorResponse.json();
+      
+      if (
+        !coordinatorResponse.ok ||
+        !coordinatorData.ok ||
+        !coordinatorData.summary ||
+        !Array.isArray(coordinatorData.recommendations)
+      ) {
+        throw new Error(
+          coordinatorData.message ||
+            "The Workflow Coordinator could not complete its analysis."
+        );
+      }
+      
       const issuesResponse = await fetch("/api/issues", {
         method: "GET",
         cache: "no-store",
@@ -495,7 +539,12 @@ export default function Home() {
         },
         findings: bottleneckStage.findings,
       });
-  
+
+      setCoordinatorResults({
+        summary: coordinatorData.summary,
+        recommendations: coordinatorData.recommendations,
+      });
+      
       setScanMessage(
         `Workflow ${data.status === "completed" ? "completed successfully" : "completed with validation issues"}. Intake: ${intakeStage.validRecords}/${intakeStage.totalRecords} valid records. Bottleneck Detection: ${bottleneckStage.bottlenecksFound} findings across ${bottleneckStage.recordsFlagged} records.`
       );
