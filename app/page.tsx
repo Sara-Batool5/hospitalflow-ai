@@ -155,6 +155,19 @@ export default function Home() {
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [scanRunning, setScanRunning] = useState(false);
   const [scanMessage, setScanMessage] = useState("");
+  const [intakeResults, setIntakeResults] = useState<{
+    summary: {
+      totalRecords: number;
+      validRecords: number;
+      invalidRecords: number;
+    };
+    results: {
+      reference: string | null;
+      title: string | null;
+      valid: boolean;
+      findings: string[];
+    }[];
+  } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -389,44 +402,69 @@ export default function Home() {
     if (scanRunning) return;
   
     setScanRunning(true);
-    setScanMessage("Loading the latest operational records from Supabase…");
+    setScanMessage("Running the Intake Agent...");
+    setDataError("");
+    setIntakeResults(null);
   
     try {
-      setDataError("");
+      const [issuesResponse, intakeResponse] = await Promise.all([
+        fetch("/api/issues", {
+          method: "GET",
+          cache: "no-store",
+        }),
+        fetch("/api/agents/intake", {
+          method: "GET",
+          cache: "no-store",
+        }),
+      ]);
   
-      const response = await fetch("/api/issues", {
-        method: "GET",
-        cache: "no-store",
-      });
+      const issuesData = await issuesResponse.json();
+      const intakeData = await intakeResponse.json();
   
-      const result = await response.json();
-  
-      if (!response.ok || !result.ok || !Array.isArray(result.issues)) {
+      if (
+        !issuesResponse.ok ||
+        !issuesData.ok ||
+        !Array.isArray(issuesData.issues)
+      ) {
         throw new Error(
-          result.message || "Could not refresh operational issues."
+          issuesData.message || "Could not load operational issues."
         );
       }
   
-      setIssues(result.issues as Issue[]);
+      if (
+        !intakeResponse.ok ||
+        !intakeData.ok ||
+        !intakeData.summary ||
+        !Array.isArray(intakeData.results)
+      ) {
+        throw new Error(
+          intakeData.message || "The Intake Agent could not complete validation."
+        );
+      }
+  
+      setIssues(issuesData.issues as Issue[]);
+      setIntakeResults({
+        summary: intakeData.summary,
+        results: intakeData.results,
+      });
   
       setScanMessage(
-        `Data refreshed successfully. ${result.issues.length} operational issues loaded from Supabase.`
+        `Intake Agent completed: ${intakeData.summary.totalRecords} records checked, ${intakeData.summary.validRecords} valid, ${intakeData.summary.invalidRecords} requiring correction.`
       );
     } catch (error) {
-      console.error("Failed to refresh issues:", error);
+      console.error("Demo scan failed:", error);
   
-      const message =
+      setDataError(
         error instanceof Error
           ? error.message
-          : "Could not refresh operational issues.";
+          : "The demo scan could not be completed."
+      );
   
-      setDataError(message);
-      setScanMessage("Refresh failed. Please try again.");
+      setScanMessage("Demo scan failed. Please try again.");
     } finally {
       setScanRunning(false);
     }
   }
-
   
   async function updateIssueStatus(
     id: string,
@@ -700,6 +738,71 @@ export default function Home() {
                   {scanRunning ? "Scanning…" : "Run demo scan"}
                 </button>
               </div>
+              {intakeResults && (
+                <div className="panel" style={{ marginBottom: 20, padding: 20 }}>
+                  <h2 style={{ marginTop: 0 }}>Intake Agent Results</h2>
+                  <p>
+                    Validation has finished on the current demo records.
+                  </p>
+              
+                  <div className="metrics-grid">
+                    <div className="metric-card">
+                      <div className="metric-label">Records checked</div>
+                      <div className="metric-value">
+                        {intakeResults.summary.totalRecords}
+                      </div>
+                    </div>
+              
+                    <div className="metric-card">
+                      <div className="metric-label">Valid records</div>
+                      <div className="metric-value">
+                        {intakeResults.summary.validRecords}
+                      </div>
+                    </div>
+              
+                    <div className="metric-card">
+                      <div className="metric-label">Invalid records</div>
+                      <div className="metric-value">
+                        {intakeResults.summary.invalidRecords}
+                      </div>
+                    </div>
+                  </div>
+              
+                  <div style={{ overflowX: "auto", marginTop: 16 }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: "left", padding: 10 }}>Reference</th>
+                          <th style={{ textAlign: "left", padding: 10 }}>Record</th>
+                          <th style={{ textAlign: "left", padding: 10 }}>Result</th>
+                          <th style={{ textAlign: "left", padding: 10 }}>Findings</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {intakeResults.results.map((record, index) => (
+                          <tr key={`${record.reference ?? "record"}-${index}`}>
+                            <td style={{ padding: 10 }}>
+                              {record.reference ?? "No reference"}
+                            </td>
+                            <td style={{ padding: 10 }}>
+                              {record.title ?? "Untitled record"}
+                            </td>
+                            <td style={{ padding: 10 }}>
+                              {record.valid ? "Valid" : "Needs attention"}
+                            </td>
+                            <td style={{ padding: 10 }}>
+                              {record.findings.length > 0
+                                ? record.findings.join(" ")
+                                : "No findings"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
               <div className="workflow-list">
                 {[
                   ["01", "Intake Agent", "Validate incoming records and required fields.", FileText],
