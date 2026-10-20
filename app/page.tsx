@@ -168,6 +168,19 @@ export default function Home() {
       findings: string[];
     }[];
   } | null>(null);
+  const [bottleneckResults, setBottleneckResults] = useState<{
+    summary: {
+      totalRecords: number;
+      bottlenecksFound: number;
+      recordsFlagged: number;
+    };
+    findings: {
+      reference: string;
+      title: string;
+      severity: string;
+      finding: string;
+    }[];
+  } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -405,21 +418,28 @@ export default function Home() {
     setScanMessage("Running the Intake Agent...");
     setDataError("");
     setIntakeResults(null);
+    setBottleneckResults(null);
   
     try {
-      const [issuesResponse, intakeResponse] = await Promise.all([
-        fetch("/api/issues", {
-          method: "GET",
-          cache: "no-store",
-        }),
-        fetch("/api/agents/intake", {
-          method: "GET",
-          cache: "no-store",
-        }),
-      ]);
-  
+      const [issuesResponse, intakeResponse, bottleneckResponse] =
+        await Promise.all([
+          fetch("/api/issues", {
+            method: "GET",
+            cache: "no-store",
+          }),
+          fetch("/api/agents/intake", {
+            method: "GET",
+            cache: "no-store",
+          }),
+          fetch("/api/agents/bottlenecks", {
+            method: "GET",
+            cache: "no-store",
+          }),
+        ]);
+      
       const issuesData = await issuesResponse.json();
       const intakeData = await intakeResponse.json();
+      const bottleneckData = await bottleneckResponse.json();
   
       if (
         !issuesResponse.ok ||
@@ -441,15 +461,32 @@ export default function Home() {
           intakeData.message || "The Intake Agent could not complete validation."
         );
       }
-  
+
+      if (
+        !bottleneckResponse.ok ||
+        !bottleneckData.ok ||
+        !bottleneckData.summary ||
+        !Array.isArray(bottleneckData.findings)
+      ) {
+        throw new Error(
+          bottleneckData.message ||
+            "Bottleneck Detection could not complete."
+        );
+      }
+      
       setIssues(issuesData.issues as Issue[]);
       setIntakeResults({
         summary: intakeData.summary,
         results: intakeData.results,
       });
-  
+
+      setBottleneckResults({
+        summary: bottleneckData.summary,
+        findings: bottleneckData.findings,
+      });
+      
       setScanMessage(
-        `Intake Agent completed: ${intakeData.summary.totalRecords} records checked, ${intakeData.summary.validRecords} valid, ${intakeData.summary.invalidRecords} requiring correction.`
+        `Demo scan completed. Intake: ${intakeData.summary.validRecords}/${intakeData.summary.totalRecords} valid records. Bottleneck Detection: ${bottleneckData.summary.bottlenecksFound} findings across ${bottleneckData.summary.recordsFlagged} records.`
       );
     } catch (error) {
       console.error("Demo scan failed:", error);
@@ -803,6 +840,67 @@ export default function Home() {
                 </div>
               )}
 
+              {bottleneckResults && (
+                <div className="panel" style={{ marginBottom: 20, padding: 20 }}>
+                  <h2 style={{ marginTop: 0 }}>Bottleneck Detection Results</h2>
+                  <p>
+                    Rule-based analysis of the current demo records.
+                  </p>
+              
+                  <div className="metrics-grid">
+                    <div className="metric-card">
+                      <div className="metric-label">Records checked</div>
+                      <div className="metric-value">
+                        {bottleneckResults.summary.totalRecords}
+                      </div>
+                    </div>
+              
+                    <div className="metric-card">
+                      <div className="metric-label">Findings</div>
+                      <div className="metric-value">
+                        {bottleneckResults.summary.bottlenecksFound}
+                      </div>
+                    </div>
+              
+                    <div className="metric-card">
+                      <div className="metric-label">Records flagged</div>
+                      <div className="metric-value">
+                        {bottleneckResults.summary.recordsFlagged}
+                      </div>
+                    </div>
+                  </div>
+              
+                  {bottleneckResults.findings.length === 0 ? (
+                    <p style={{ marginTop: 16 }}>
+                      No bottlenecks detected by the current rules.
+                    </p>
+                  ) : (
+                    <div style={{ overflowX: "auto", marginTop: 16 }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <thead>
+                          <tr>
+                            <th style={{ textAlign: "left", padding: 10 }}>Reference</th>
+                            <th style={{ textAlign: "left", padding: 10 }}>Record</th>
+                            <th style={{ textAlign: "left", padding: 10 }}>Severity</th>
+                            <th style={{ textAlign: "left", padding: 10 }}>Finding</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {bottleneckResults.findings.map((item, index) => (
+                            <tr key={`${item.reference}-${index}`}>
+                              <td style={{ padding: 10 }}>{item.reference}</td>
+                              <td style={{ padding: 10 }}>{item.title}</td>
+                              <td style={{ padding: 10 }}>{item.severity}</td>
+                              <td style={{ padding: 10 }}>{item.finding}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="workflow-list">
                 {[
                   ["01", "Intake Agent", "Validate incoming records and required fields.", FileText],
@@ -820,7 +918,17 @@ export default function Home() {
                         <strong>{name as string}</strong>
                         <p>{description as string}</p>
                       </div>
-                      <span className="coming-soon">PLANNED</span>
+                      <span className="coming-soon">
+                        {number === "01"
+                          ? intakeResults
+                            ? "COMPLETED"
+                            : "READY"
+                          : number === "02"
+                            ? bottleneckResults
+                              ? "COMPLETED"
+                              : "READY"
+                            : "PLANNED"}
+                      </span>
                     </div>
                   );
                 })}
