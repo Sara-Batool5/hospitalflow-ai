@@ -415,31 +415,56 @@ export default function Home() {
     if (scanRunning) return;
   
     setScanRunning(true);
-    setScanMessage("Running the Intake Agent...");
+    setScanMessage("Running the combined agent workflow...");
     setDataError("");
     setIntakeResults(null);
     setBottleneckResults(null);
   
     try {
-      const [issuesResponse, intakeResponse, bottleneckResponse] =
-        await Promise.all([
-          fetch("/api/issues", {
-            method: "GET",
-            cache: "no-store",
-          }),
-          fetch("/api/agents/intake", {
-            method: "GET",
-            cache: "no-store",
-          }),
-          fetch("/api/agents/bottlenecks", {
-            method: "GET",
-            cache: "no-store",
-          }),
-        ]);
-      
+      const response = await fetch("/api/agents/run", {
+        method: "POST",
+        cache: "no-store",
+      });
+  
+      const data = await response.json();
+  
+      if (
+        !response.ok ||
+        !data.ok ||
+        !Array.isArray(data.stages) ||
+        data.stages.length < 2
+      ) {
+        throw new Error(
+          data.message || "The combined agent workflow could not complete."
+        );
+      }
+  
+      const intakeStage = data.stages.find(
+        (stage: { agent: string }) => stage.agent === "Intake Agent"
+      );
+  
+      const bottleneckStage = data.stages.find(
+        (stage: { agent: string }) =>
+          stage.agent === "Bottleneck Detection"
+      );
+  
+      if (
+        !intakeStage ||
+        !Array.isArray(intakeStage.results) ||
+        !bottleneckStage ||
+        !Array.isArray(bottleneckStage.findings)
+      ) {
+        throw new Error(
+          "The workflow response is missing one or more agent results."
+        );
+      }
+  
+      const issuesResponse = await fetch("/api/issues", {
+        method: "GET",
+        cache: "no-store",
+      });
+  
       const issuesData = await issuesResponse.json();
-      const intakeData = await intakeResponse.json();
-      const bottleneckData = await bottleneckResponse.json();
   
       if (
         !issuesResponse.ok ||
@@ -447,62 +472,48 @@ export default function Home() {
         !Array.isArray(issuesData.issues)
       ) {
         throw new Error(
-          issuesData.message || "Could not load operational issues."
+          issuesData.message || "Could not refresh operational issues."
         );
       }
   
-      if (
-        !intakeResponse.ok ||
-        !intakeData.ok ||
-        !intakeData.summary ||
-        !Array.isArray(intakeData.results)
-      ) {
-        throw new Error(
-          intakeData.message || "The Intake Agent could not complete validation."
-        );
-      }
-
-      if (
-        !bottleneckResponse.ok ||
-        !bottleneckData.ok ||
-        !bottleneckData.summary ||
-        !Array.isArray(bottleneckData.findings)
-      ) {
-        throw new Error(
-          bottleneckData.message ||
-            "Bottleneck Detection could not complete."
-        );
-      }
-      
       setIssues(issuesData.issues as Issue[]);
+  
       setIntakeResults({
-        summary: intakeData.summary,
-        results: intakeData.results,
+        summary: {
+          totalRecords: intakeStage.totalRecords,
+          validRecords: intakeStage.validRecords,
+          invalidRecords: intakeStage.invalidRecords,
+        },
+        results: intakeStage.results,
       });
-
+  
       setBottleneckResults({
-        summary: bottleneckData.summary,
-        findings: bottleneckData.findings,
+        summary: {
+          totalRecords: bottleneckStage.inputRecords,
+          bottlenecksFound: bottleneckStage.bottlenecksFound,
+          recordsFlagged: bottleneckStage.recordsFlagged,
+        },
+        findings: bottleneckStage.findings,
       });
-      
+  
       setScanMessage(
-        `Demo scan completed. Intake: ${intakeData.summary.validRecords}/${intakeData.summary.totalRecords} valid records. Bottleneck Detection: ${bottleneckData.summary.bottlenecksFound} findings across ${bottleneckData.summary.recordsFlagged} records.`
+        `Workflow ${data.status === "completed" ? "completed successfully" : "completed with validation issues"}. Intake: ${intakeStage.validRecords}/${intakeStage.totalRecords} valid records. Bottleneck Detection: ${bottleneckStage.bottlenecksFound} findings across ${bottleneckStage.recordsFlagged} records.`
       );
     } catch (error) {
-      console.error("Demo scan failed:", error);
+      console.error("Agent workflow failed:", error);
   
       setDataError(
         error instanceof Error
           ? error.message
-          : "The demo scan could not be completed."
+          : "The agent workflow could not be completed."
       );
   
-      setScanMessage("Demo scan failed. Please try again.");
+      setScanMessage("Workflow failed. Please try again.");
     } finally {
       setScanRunning(false);
     }
   }
-  
+
   async function updateIssueStatus(
     id: string,
     status: IssueStatus
