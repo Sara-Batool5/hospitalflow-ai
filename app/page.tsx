@@ -961,6 +961,99 @@ export default function Home() {
                 </div>
               )}
 
+              {coordinatorResults && (
+                <div className="panel" style={{ marginBottom: 20, padding: 20 }}>
+                  <h2 style={{ marginTop: 0 }}>
+                    Workflow Coordinator Results
+                  </h2>
+              
+                  <p>
+                    Recommended next steps based on the current operational
+                    records and predefined coordination rules.
+                  </p>
+              
+                  <div className="metrics-grid">
+                    <div className="metric-card">
+                      <div className="metric-label">Records reviewed</div>
+                      <div className="metric-value">
+                        {coordinatorResults.summary.totalRecords}
+                      </div>
+                    </div>
+              
+                    <div className="metric-card">
+                      <div className="metric-label">Recommendations</div>
+                      <div className="metric-value">
+                        {coordinatorResults.summary.recommendationsGenerated}
+                      </div>
+                    </div>
+              
+                    <div className="metric-card">
+                      <div className="metric-label">Require action</div>
+                      <div className="metric-value">
+                        {coordinatorResults.summary.actionRequired}
+                      </div>
+                    </div>
+              
+                    <div className="metric-card">
+                      <div className="metric-label">No action required</div>
+                      <div className="metric-value">
+                        {coordinatorResults.summary.noActionRequired}
+                      </div>
+                    </div>
+                  </div>
+              
+                  {coordinatorResults.recommendations.length === 0 ? (
+                    <p style={{ marginTop: 16 }}>
+                      No operational records were available for coordination.
+                    </p>
+                  ) : (
+                    <div style={{ overflowX: "auto", marginTop: 16 }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <thead>
+                          <tr>
+                            <th style={{ textAlign: "left", padding: 10 }}>Reference</th>
+                            <th style={{ textAlign: "left", padding: 10 }}>Issue</th>
+                            <th style={{ textAlign: "left", padding: 10 }}>Recommended action</th>
+                            <th style={{ textAlign: "left", padding: 10 }}>Department</th>
+                            <th style={{ textAlign: "left", padding: 10 }}>Urgency</th>
+                            <th style={{ textAlign: "left", padding: 10 }}>Human review</th>
+                          </tr>
+                        </thead>
+              
+                        <tbody>
+                          {coordinatorResults.recommendations.map((item) => (
+                            <tr key={item.reference}>
+                              <td style={{ padding: 10 }}>{item.reference}</td>
+                              <td style={{ padding: 10 }}>{item.title}</td>
+                              <td style={{ padding: 10 }}>
+                                <strong>{item.recommendation.action}</strong>
+                                <div style={{ marginTop: 4, opacity: 0.8 }}>
+                                  {item.recommendation.reason}
+                                </div>
+                              </td>
+                              <td style={{ padding: 10 }}>
+                                {item.recommendation.assignedDepartment}
+                              </td>
+                              <td style={{ padding: 10 }}>
+                                {item.recommendation.urgency}
+                              </td>
+                              <td style={{ padding: 10 }}>
+                                {item.recommendation.requiresHumanReview ? "Required" : "No"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+              
+                  <p style={{ marginBottom: 0, marginTop: 16, opacity: 0.8 }}>
+                    Recommendations are advisory. No operational actions were
+                    executed, and no database records were modified by this agent.
+                  </p>
+                </div>
+              )}
+
               <div className="workflow-list">
                 {[
                   ["01", "Intake Agent", "Validate incoming records and required fields.", FileText],
