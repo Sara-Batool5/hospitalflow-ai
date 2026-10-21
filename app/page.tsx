@@ -1080,7 +1080,11 @@ export default function Home() {
                             ? bottleneckResults
                               ? "COMPLETED"
                               : "READY"
-                            : "PLANNED"}
+                            : number === "03"
+                              ? coordinatorResults
+                                ? "COMPLETED"
+                                : "READY"
+                              : "PLANNED"}
                       </span>
                     </div>
                   );
