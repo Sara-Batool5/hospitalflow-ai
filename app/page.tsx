@@ -202,6 +202,26 @@ export default function Home() {
       };
     }[];
   } | null>(null);
+  const [communicationResults, setCommunicationResults] = useState<{
+    summary: {
+      totalRecords: number;
+      draftsGenerated: number;
+      recordsSkipped: number;
+      draftsRequiringReview: number;
+    };
+    results: {
+      reference: string;
+      title: string;
+      department: string;
+      status: string;
+      reason: string;
+      draft: {
+        subject: string;
+        body: string;
+      } | null;
+      requiresHumanReview: boolean;
+    }[];
+  } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -441,6 +461,7 @@ export default function Home() {
     setIntakeResults(null);
     setBottleneckResults(null);
     setCoordinatorResults(null);
+    setCommunicationResults(null);
   
     try {
       const response = await fetch("/api/agents/run", {
@@ -502,7 +523,29 @@ export default function Home() {
             "The Workflow Coordinator could not complete its analysis."
         );
       }
+
+      const communicationResponse = await fetch(
+        "/api/agents/communication",
+        {
+          method: "GET",
+          cache: "no-store",
+        }
+      );
       
+      const communicationData = await communicationResponse.json();
+      
+      if (
+        !communicationResponse.ok ||
+        !communicationData.ok ||
+        !communicationData.summary ||
+        !Array.isArray(communicationData.results)
+      ) {
+        throw new Error(
+          communicationData.message ||
+            "The Communication Agent could not prepare drafts."
+        );
+      }
+
       const issuesResponse = await fetch("/api/issues", {
         method: "GET",
         cache: "no-store",
@@ -543,6 +586,11 @@ export default function Home() {
       setCoordinatorResults({
         summary: coordinatorData.summary,
         recommendations: coordinatorData.recommendations,
+      });
+
+      setCommunicationResults({
+        summary: communicationData.summary,
+        results: communicationData.results,
       });
       
       setScanMessage(
@@ -1054,6 +1102,110 @@ export default function Home() {
                 </div>
               )}
 
+              {communicationResults && (
+                <div className="panel" style={{ marginBottom: 20, padding: 20 }}>
+                  <h2 style={{ marginTop: 0 }}>
+                    Communication Agent Results
+                  </h2>
+              
+                  <p>
+                    Departmental follow-up drafts prepared for human review.
+                    No messages are sent automatically.
+                  </p>
+              
+                  <div className="metrics-grid">
+                    <div className="metric-card">
+                      <div className="metric-label">Records reviewed</div>
+                      <div className="metric-value">
+                        {communicationResults.summary.totalRecords}
+                      </div>
+                    </div>
+              
+                    <div className="metric-card">
+                      <div className="metric-label">Drafts generated</div>
+                      <div className="metric-value">
+                        {communicationResults.summary.draftsGenerated}
+                      </div>
+                    </div>
+              
+                    <div className="metric-card">
+                      <div className="metric-label">Records skipped</div>
+                      <div className="metric-value">
+                        {communicationResults.summary.recordsSkipped}
+                      </div>
+                    </div>
+              
+                    <div className="metric-card">
+                      <div className="metric-label">Require review</div>
+                      <div className="metric-value">
+                        {communicationResults.summary.draftsRequiringReview}
+                      </div>
+                    </div>
+                  </div>
+              
+                  {communicationResults.results.length === 0 ? (
+                    <p style={{ marginTop: 16 }}>
+                      No records were available for communication review.
+                    </p>
+                  ) : (
+                    <div style={{ marginTop: 16 }}>
+                      {communicationResults.results.map((item) => (
+                        <div
+                          key={item.reference}
+                          style={{
+                            border: "1px solid var(--border)",
+                            borderRadius: 10,
+                            padding: 16,
+                            marginBottom: 12,
+                          }}
+                        >
+                          <div style={{ fontWeight: 600 }}>
+                            {item.reference} — {item.title}
+                          </div>
+              
+                          <p style={{ marginBottom: 8 }}>
+                            Department: {item.department}
+                          </p>
+              
+                          <p style={{ marginBottom: 12 }}>
+                            Status: {item.status === "draft_ready"
+                              ? "Draft ready for review"
+                              : "Skipped"}
+                          </p>
+              
+                          <p>{item.reason}</p>
+              
+                          {item.draft && (
+                            <div style={{ marginTop: 12 }}>
+                              <div style={{ fontWeight: 600 }}>
+                                {item.draft.subject}
+                              </div>
+              
+                              <pre
+                                style={{
+                                  whiteSpace: "pre-wrap",
+                                  overflowWrap: "anywhere",
+                                  fontFamily: "inherit",
+                                  padding: 12,
+                                  borderRadius: 8,
+                                  background: "var(--surface)",
+                                }}
+                              >
+                                {item.draft.body}
+                              </pre>
+              
+                              <p style={{ marginBottom: 0 }}>
+                                Human review required before sending.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+  
               <div className="workflow-list">
                 {[
                   ["01", "Intake Agent", "Validate incoming records and required fields.", FileText],
@@ -1084,7 +1236,11 @@ export default function Home() {
                               ? coordinatorResults
                                 ? "COMPLETED"
                                 : "READY"
-                              : "PLANNED"}
+                              : number === "04"
+                                ? communicationResults
+                                  ? "COMPLETED"
+                                  : "READY"
+                                : "PLANNED"}
                       </span>
                     </div>
                   );
