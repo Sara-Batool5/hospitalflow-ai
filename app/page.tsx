@@ -222,6 +222,25 @@ export default function Home() {
       requiresHumanReview: boolean;
     }[];
   } | null>(null);
+  const [auditResults, setAuditResults] = useState<{
+    summary: {
+      actionsReviewed: number;
+      auditEventsReviewed: number;
+      passed: number;
+      requiringReview: number;
+    };
+    results: {
+      actionId: string;
+      issueId: string;
+      actionType: string;
+      description: string;
+      status: string;
+      requiresHumanApproval: boolean;
+      auditEventsFound: number;
+      decision: string;
+      findings: string[];
+    }[];
+  } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -462,6 +481,7 @@ export default function Home() {
     setBottleneckResults(null);
     setCoordinatorResults(null);
     setCommunicationResults(null);
+    setAuditResults(null);
   
     try {
       const response = await fetch("/api/agents/run", {
@@ -546,6 +566,24 @@ export default function Home() {
         );
       }
 
+      const auditResponse = await fetch("/api/agents/audit", {
+        method: "GET",
+        cache: "no-store",
+      });
+      
+      const auditData = await auditResponse.json();
+      
+      if (
+        !auditResponse.ok ||
+        !auditData.ok ||
+        !auditData.summary ||
+        !Array.isArray(auditData.results)
+      ) {
+        throw new Error(
+          auditData.message || "The Audit Agent could not complete its checks."
+        );
+      }
+ 
       const issuesResponse = await fetch("/api/issues", {
         method: "GET",
         cache: "no-store",
@@ -591,6 +629,11 @@ export default function Home() {
       setCommunicationResults({
         summary: communicationData.summary,
         results: communicationData.results,
+      });
+
+      setAuditResults({
+        summary: auditData.summary,
+        results: auditData.results,
       });
       
       setScanMessage(
@@ -1205,7 +1248,92 @@ export default function Home() {
                   )}
                 </div>
               )}
-  
+
+              {auditResults && (
+                <div className="panel" style={{ marginBottom: 20, padding: 20 }}>
+                  <h2 style={{ marginTop: 0 }}>Audit Agent Results</h2>
+              
+                  <p>
+                    Verification of workflow actions and associated approval
+                    records. Findings indicate whether additional review is needed.
+                  </p>
+              
+                  <div className="metrics-grid">
+                    <div className="metric-card">
+                      <div className="metric-label">Actions reviewed</div>
+                      <div className="metric-value">
+                        {auditResults.summary.actionsReviewed}
+                      </div>
+                    </div>
+              
+                    <div className="metric-card">
+                      <div className="metric-label">Audit events</div>
+                      <div className="metric-value">
+                        {auditResults.summary.auditEventsReviewed}
+                      </div>
+                    </div>
+              
+                    <div className="metric-card">
+                      <div className="metric-label">Passed</div>
+                      <div className="metric-value">
+                        {auditResults.summary.passed}
+                      </div>
+                    </div>
+              
+                    <div className="metric-card">
+                      <div className="metric-label">Require review</div>
+                      <div className="metric-value">
+                        {auditResults.summary.requiringReview}
+                      </div>
+                    </div>
+                  </div>
+              
+                  {auditResults.results.length === 0 ? (
+                    <p style={{ marginTop: 16 }}>
+                      No workflow actions were available for audit.
+                    </p>
+                  ) : (
+                    <div style={{ overflowX: "auto", marginTop: 16 }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <thead>
+                          <tr>
+                            <th style={{ textAlign: "left", padding: 10 }}>Action</th>
+                            <th style={{ textAlign: "left", padding: 10 }}>Status</th>
+                            <th style={{ textAlign: "left", padding: 10 }}>Audit events</th>
+                            <th style={{ textAlign: "left", padding: 10 }}>Decision</th>
+                            <th style={{ textAlign: "left", padding: 10 }}>Findings</th>
+                          </tr>
+                        </thead>
+              
+                        <tbody>
+                          {auditResults.results.map((item) => (
+                            <tr key={item.actionId}>
+                              <td style={{ padding: 10 }}>
+                                <strong>{item.actionType}</strong>
+                                <div style={{ marginTop: 4 }}>{item.description}</div>
+                              </td>
+                              <td style={{ padding: 10 }}>{item.status}</td>
+                              <td style={{ padding: 10 }}>{item.auditEventsFound}</td>
+                              <td style={{ padding: 10 }}>{item.decision}</td>
+                              <td style={{ padding: 10 }}>
+                                {item.findings.length > 0
+                                  ? item.findings.join(" ")
+                                  : "No findings"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+              
+                  <p style={{ marginBottom: 0, marginTop: 16, opacity: 0.8 }}>
+                    This prototype performs limited audit checks. It does not
+                    independently establish compliance or guarantee action safety.
+                  </p>
+                </div>
+              )}
+
               <div className="workflow-list">
                 {[
                   ["01", "Intake Agent", "Validate incoming records and required fields.", FileText],
@@ -1240,7 +1368,11 @@ export default function Home() {
                                 ? communicationResults
                                   ? "COMPLETED"
                                   : "READY"
-                                : "PLANNED"}
+                                : number === "05"
+                                  ? auditResults
+                                    ? "COMPLETED"
+                                    : "READY"
+                                  : "PLANNED"}
                       </span>
                     </div>
                   );
