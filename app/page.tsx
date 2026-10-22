@@ -1170,17 +1170,32 @@ export default function Home() {
                   </p>
                 </div>
               )}
-
+ 
               {coordinatorResults && (
-                <div className="panel" style={{ marginBottom: 20, padding: 20 }}>
-                  <h2 style={{ marginTop: 0 }}>
-                    Workflow Coordinator Results
-                  </h2>
-              
-                  <p>
-                    Recommended next steps based on the current operational
-                    records and predefined coordination rules.
-                  </p>
+                <div className="panel" style={{ marginBottom: 20, padding: 24 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      flexWrap: "wrap",
+                      gap: 12,
+                      marginBottom: 20,
+                    }}
+                  >
+                    <div>
+                      <div className="eyebrow">AGENT ANALYSIS · STAGE 03</div>
+                      <h2 style={{ marginTop: 6, marginBottom: 8 }}>
+                        Workflow Coordinator Results
+                      </h2>
+                      <p style={{ margin: 0, color: "var(--muted)" }}>
+                        Recommended next steps based on operational records and predefined rules.
+                      </p>
+                    </div>
+                    <span className="coming-soon">
+                      ADVISORY ONLY
+                    </span>
+                  </div>
               
                   <div className="metrics-grid">
                     <div className="metric-card">
@@ -1188,6 +1203,7 @@ export default function Home() {
                       <div className="metric-value">
                         {coordinatorResults.summary.totalRecords}
                       </div>
+                      <div className="metric-foot">Records assessed</div>
                     </div>
               
                     <div className="metric-card">
@@ -1195,6 +1211,7 @@ export default function Home() {
                       <div className="metric-value">
                         {coordinatorResults.summary.recommendationsGenerated}
                       </div>
+                      <div className="metric-foot">Suggested next steps</div>
                     </div>
               
                     <div className="metric-card">
@@ -1202,6 +1219,7 @@ export default function Home() {
                       <div className="metric-value">
                         {coordinatorResults.summary.actionRequired}
                       </div>
+                      <div className="metric-foot">Need follow-up</div>
                     </div>
               
                     <div className="metric-card">
@@ -1209,57 +1227,229 @@ export default function Home() {
                       <div className="metric-value">
                         {coordinatorResults.summary.noActionRequired}
                       </div>
+                      <div className="metric-foot">No next step suggested</div>
                     </div>
                   </div>
               
                   {coordinatorResults.recommendations.length === 0 ? (
-                    <p style={{ marginTop: 16 }}>
-                      No operational records were available for coordination.
-                    </p>
+                    <div className="empty-state" style={{ marginTop: 20, padding: 24 }}>
+                      <div className="empty-state-icon">
+                        <CheckCircle2 size={25} />
+                      </div>
+                      <h3>No recommendations available</h3>
+                      <p>
+                        The Coordinator did not return any recommendations for the
+                        current records.
+                      </p>
+                    </div>
                   ) : (
-                    <div style={{ overflowX: "auto", marginTop: 16 }}>
-                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                        <thead>
-                          <tr>
-                            <th style={{ textAlign: "left", padding: 10 }}>Reference</th>
-                            <th style={{ textAlign: "left", padding: 10 }}>Issue</th>
-                            <th style={{ textAlign: "left", padding: 10 }}>Recommended action</th>
-                            <th style={{ textAlign: "left", padding: 10 }}>Department</th>
-                            <th style={{ textAlign: "left", padding: 10 }}>Urgency</th>
-                            <th style={{ textAlign: "left", padding: 10 }}>Human review</th>
-                          </tr>
-                        </thead>
+                    <div style={{ marginTop: 24 }}>
+                      <div className="section-heading" style={{ marginBottom: 14 }}>
+                        <div>
+                          <h3 style={{ margin: 0 }}>Recommended next steps</h3>
+                          <p style={{ marginTop: 5 }}>
+                            Review each recommendation before taking action.
+                          </p>
+                        </div>
+                        <span className="count-pill">
+                          {coordinatorResults.recommendations.length} recommendations
+                        </span>
+                      </div>
               
-                        <tbody>
-                          {coordinatorResults.recommendations.map((item) => (
-                            <tr key={item.reference}>
-                              <td style={{ padding: 10 }}>{item.reference}</td>
-                              <td style={{ padding: 10 }}>{item.title}</td>
-                              <td style={{ padding: 10 }}>
-                                <strong>{item.recommendation.action}</strong>
-                                <div style={{ marginTop: 4, opacity: 0.8 }}>
-                                  {item.recommendation.reason}
+                      <div style={{ display: "grid", gap: 14 }}>
+                        {coordinatorResults.recommendations.map((item) => {
+                          const urgency = String(
+                            item.recommendation.urgency || "normal"
+                          ).toLowerCase();
+              
+                          const urgencyStyle =
+                            urgency === "critical" || urgency === "urgent"
+                              ? { color: "#b42318", background: "#fef3f2" }
+                              : urgency === "high"
+                                ? { color: "#c2410c", background: "#fff7ed" }
+                                : urgency === "medium"
+                                  ? { color: "#a16207", background: "#fefce8" }
+                                  : { color: "#475569", background: "#f1f5f9" };
+              
+                          return (
+                            <article
+                              key={item.reference}
+                              style={{
+                                border: "1px solid var(--border)",
+                                borderRadius: 12,
+                                padding: 18,
+                                display: "grid",
+                                gap: 14,
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "flex-start",
+                                  flexWrap: "wrap",
+                                  gap: 12,
+                                }}
+                              >
+                                <div style={{ flex: "1 1 240px" }}>
+                                  <div
+                                    style={{
+                                      color: "var(--muted)",
+                                      fontSize: 12,
+                                      marginBottom: 5,
+                                    }}
+                                  >
+                                    {item.reference}
+                                  </div>
+                                  <h4 style={{ margin: 0, fontSize: 17 }}>
+                                    {item.title || "Untitled operational issue"}
+                                  </h4>
                                 </div>
-                              </td>
-                              <td style={{ padding: 10 }}>
-                                {item.recommendation.assignedDepartment}
-                              </td>
-                              <td style={{ padding: 10 }}>
-                                {item.recommendation.urgency}
-                              </td>
-                              <td style={{ padding: 10 }}>
-                                {item.recommendation.requiresHumanReview ? "Required" : "No"}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+              
+                                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                                  <span
+                                    style={{
+                                      padding: "5px 10px",
+                                      borderRadius: 999,
+                                      fontSize: 12,
+                                      fontWeight: 700,
+                                      background: "var(--surface-secondary)",
+                                      color: "var(--text)",
+                                    }}
+                                  >
+                                    Priority: {item.priority}
+                                  </span>
+                                  <span
+                                    style={{
+                                      padding: "5px 10px",
+                                      borderRadius: 999,
+                                      fontSize: 12,
+                                      fontWeight: 700,
+                                      ...urgencyStyle,
+                                    }}
+                                  >
+                                    Urgency: {item.recommendation.urgency}
+                                  </span>
+                                </div>
+                              </div>
+              
+                              <div
+                                style={{
+                                  padding: 16,
+                                  borderRadius: 10,
+                                  background: "var(--surface-secondary)",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    fontSize: 12,
+                                    color: "var(--muted)",
+                                    fontWeight: 700,
+                                    marginBottom: 6,
+                                  }}
+                                >
+                                  RECOMMENDED ACTION
+                                </div>
+                                <div style={{ fontWeight: 700, lineHeight: 1.5 }}>
+                                  {item.recommendation.action}
+                                </div>
+                                <p style={{ marginBottom: 0, lineHeight: 1.6 }}>
+                                  {item.recommendation.reason}
+                                </p>
+                              </div>
+              
+                              <div
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                                  gap: 12,
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    border: "1px solid var(--border)",
+                                    borderRadius: 10,
+                                    padding: 12,
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      fontSize: 12,
+                                      color: "var(--muted)",
+                                      marginBottom: 5,
+                                    }}
+                                  >
+                                    RESPONSIBLE DEPARTMENT
+                                  </div>
+                                  <div style={{ fontWeight: 600 }}>
+                                    {item.recommendation.assignedDepartment || "Unassigned"}
+                                  </div>
+                                </div>
+              
+                                <div
+                                  style={{
+                                    border: "1px solid var(--border)",
+                                    borderRadius: 10,
+                                    padding: 12,
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      fontSize: 12,
+                                      color: "var(--muted)",
+                                      marginBottom: 5,
+                                    }}
+                                  >
+                                    HUMAN REVIEW
+                                  </div>
+                                  <div style={{ fontWeight: 700 }}>
+                                    {item.recommendation.requiresHumanReview
+                                      ? "Required before action"
+                                      : "Not flagged by this rule"}
+                                  </div>
+                                </div>
+                              </div>
+              
+                              {item.recommendation.requiresHumanReview && (
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "flex-start",
+                                    gap: 10,
+                                    padding: 12,
+                                    borderRadius: 10,
+                                    background: "var(--surface-secondary)",
+                                    lineHeight: 1.5,
+                                  }}
+                                >
+                                  <ShieldCheck size={19} style={{ flexShrink: 0 }} />
+                                  <div>
+                                    <strong>Human approval required</strong>
+                                    <div style={{ fontSize: 13, marginTop: 4 }}>
+                                      This recommendation is advisory. An authorized
+                                      person must review it before any consequential
+                                      operational action.
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </article>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
               
-                  <p style={{ marginBottom: 0, marginTop: 16, opacity: 0.8 }}>
-                    Recommendations are advisory. No operational actions were
-                    executed, and no database records were modified by this agent.
+                  <p
+                    style={{
+                      marginBottom: 0,
+                      marginTop: 20,
+                      color: "var(--muted)",
+                      fontSize: 13,
+                    }}
+                  >
+                    Recommendations are generated by predefined rules. They do not
+                    execute actions or modify operational records by themselves.
                   </p>
                 </div>
               )}
