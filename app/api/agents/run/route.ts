@@ -22,11 +22,31 @@ const issueTypes = [
   "other",
 ];
 
-export async function POST() {
+async function getAgentResult(
+  baseUrl: string,
+  endpoint: string
+) {
+  const response = await fetch(`${baseUrl}${endpoint}`, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || !data.ok) {
+    throw new Error(
+      data.message || `${endpoint} failed.`
+    );
+  }
+
+  return data;
+}
+
+export async function POST(request: Request) {
   try {
     const supabase = getSupabaseAdmin();
 
-    // Stage 1: Load the records once for this workflow run.
+    // Stage 1: Load records once for Intake and Bottleneck Detection.
     const { data, error } = await supabase
       .from("operational_issues")
       .select(
@@ -65,26 +85,33 @@ export async function POST() {
         findings.push("No department assigned.");
       }
 
-      if (!priorities.includes(
-        String(record.priority ?? "").toLowerCase()
-      )) {
+      if (
+        !priorities.includes(
+          String(record.priority ?? "").toLowerCase()
+        )
+      ) {
         findings.push("Invalid priority value.");
       }
 
-      if (!statuses.includes(
-        String(record.status ?? "").toLowerCase()
-      )) {
+      if (
+        !statuses.includes(
+          String(record.status ?? "").toLowerCase()
+        )
+      ) {
         findings.push("Invalid status value.");
       }
 
-      if (!issueTypes.includes(
-        String(record.issue_type ?? "").toLowerCase()
-      )) {
+      if (
+        !issueTypes.includes(
+          String(record.issue_type ?? "").toLowerCase()
+        )
+      ) {
         findings.push("Invalid issue type.");
       }
 
       return {
-        reference: record.synthetic_reference || "UNKNOWN-REFERENCE",
+        reference:
+          record.synthetic_reference || "UNKNOWN-REFERENCE",
         title: record.title || "Untitled record",
         valid: findings.length === 0,
         findings,
@@ -96,9 +123,11 @@ export async function POST() {
       .filter((item) => item.valid)
       .map((item) => item.record);
 
-    const invalidRecords = intakeResults.filter((item) => !item.valid);
+    const invalidRecords = intakeResults.filter(
+      (item) => !item.valid
+    );
 
-    // Stage 3: Bottleneck Detection receives only valid records.
+    // Stage 3: Bottleneck Detection receives valid records only.
     const bottleneckFindings = validRecords.flatMap((record) => {
       const findings: {
         reference: string;
@@ -107,7 +136,8 @@ export async function POST() {
         finding: string;
       }[] = [];
 
-      const reference = record.synthetic_reference || "UNKNOWN-REFERENCE";
+      const reference =
+        record.synthetic_reference || "UNKNOWN-REFERENCE";
       const title = record.title || "Untitled record";
       const status = String(record.status ?? "").toLowerCase();
       const priority = String(record.priority ?? "").toLowerCase();
@@ -146,13 +176,62 @@ export async function POST() {
       return findings;
     });
 
-    // Stage 4: Return the shared workflow result.
+    // Stage 4: Run the existing Coordinator, Communication,
+    // and Audit endpoints and combine their results.
+    const baseUrl = new URL(request.url).origin;
+
+    const coordinatorData = await getAgentResult(
+      baseUrl,
+      "/api/agents/coordinator"
+    );
+
+    const communicationData = await getAgentResult(
+      baseUrl,
+      "/api/agents/communication"
+    );
+
+    const auditData = await getAgentResult(
+      baseUrl,
+      "/api/agents/audit"
+    );
+
+    if (
+      !coordinatorData.summary ||
+      !Array.isArray(coordinatorData.recommendations)
+    ) {
+      throw new Error(
+        "Coordinator returned an unexpected response."
+      );
+    }
+
+    if (
+      !communicationData.summary ||
+      !Array.isArray(communicationData.results)
+    ) {
+      throw new Error(
+        "Communication Agent returned an unexpected response."
+      );
+    }
+
+    if (
+      !auditData.summary ||
+      !Array.isArray(auditData.results)
+    ) {
+      throw new Error(
+        "Audit Agent returned an unexpected response."
+      );
+    }
+
+    // Stage 5: Return one combined five-agent workflow result.
     return NextResponse.json({
       ok: true,
       workflow: "HospitalFlow AI Demo Workflow",
-      status: invalidRecords.length > 0
-        ? "completed_with_validation_issues"
-        : "completed",
+      status:
+        invalidRecords.length > 0 ||
+        auditData.summary.requiringReview > 0
+          ? "completed_with_review"
+          : "completed",
+
       stages: [
         {
           agent: "Intake Agent",
@@ -174,10 +253,43 @@ export async function POST() {
           ).size,
           findings: bottleneckFindings,
         },
+        {
+          agent: "Workflow Coordinator",
+          status: "completed",
+          summary: coordinatorData.summary,
+          recommendations: coordinatorData.recommendations,
+        },
+        {
+          agent: "Communication Agent",
+          status: "completed",
+          summary: communicationData.summary,
+          results: communicationData.results,
+        },
+        {
+          agent: "Audit Agent",
+          status: "completed",
+          summary: auditData.summary,
+          results: auditData.results,
+        },
       ],
+
       routing: {
         validRecordsSentToDetection: validRecords.length,
         invalidRecordsHeldForCorrection: invalidRecords.length,
+        coordinatorRecommendations:
+          coordinatorData.summary.recommendationsGenerated,
+        communicationDrafts:
+          communicationData.summary.draftsGenerated,
+        auditActionsReviewed:
+          auditData.summary.actionsReviewed,
+        auditItemsRequiringReview:
+          auditData.summary.requiringReview,
+      },
+
+      safety: {
+        messagesSent: false,
+        operationalActionsExecuted: false,
+        approvalDecisionsChanged: false,
       },
     });
   } catch (error) {
@@ -186,7 +298,10 @@ export async function POST() {
     return NextResponse.json(
       {
         ok: false,
-        message: "The agent workflow could not be completed.",
+        message:
+          error instanceof Error
+            ? error.message
+            : "The agent workflow could not be completed.",
       },
       { status: 500 }
     );
