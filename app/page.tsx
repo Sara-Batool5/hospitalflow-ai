@@ -470,12 +470,12 @@ export default function Home() {
       return matchesQuery && matchesPriority && matchesStatus && matchesNav;
     });
   }, [issues, searchQuery, priorityFilter, statusFilter, activeNav]);
-
+  
   async function runScan() {
     if (scanRunning) return;
   
     setScanRunning(true);
-    setScanMessage("Running the combined agent workflow...");
+    setScanMessage("Running the combined five-agent workflow...");
     setDataError("");
     setIntakeResults(null);
     setBottleneckResults(null);
@@ -484,6 +484,7 @@ export default function Home() {
     setAuditResults(null);
   
     try {
+      // Call the orchestrator once for all five agent stages.
       const response = await fetch("/api/agents/run", {
         method: "POST",
         cache: "no-store",
@@ -495,15 +496,18 @@ export default function Home() {
         !response.ok ||
         !data.ok ||
         !Array.isArray(data.stages) ||
-        data.stages.length < 2
+        data.stages.length !== 5
       ) {
         throw new Error(
-          data.message || "The combined agent workflow could not complete."
+          data.message ||
+            "The combined five-agent workflow could not complete."
         );
       }
   
+      // Extract each stage from the combined response.
       const intakeStage = data.stages.find(
-        (stage: { agent: string }) => stage.agent === "Intake Agent"
+        (stage: { agent: string }) =>
+          stage.agent === "Intake Agent"
       );
   
       const bottleneckStage = data.stages.find(
@@ -511,79 +515,43 @@ export default function Home() {
           stage.agent === "Bottleneck Detection"
       );
   
+      const coordinatorStage = data.stages.find(
+        (stage: { agent: string }) =>
+          stage.agent === "Workflow Coordinator"
+      );
+  
+      const communicationStage = data.stages.find(
+        (stage: { agent: string }) =>
+          stage.agent === "Communication Agent"
+      );
+  
+      const auditStage = data.stages.find(
+        (stage: { agent: string }) =>
+          stage.agent === "Audit Agent"
+      );
+  
+      // Validate the results before updating the dashboard.
       if (
         !intakeStage ||
         !Array.isArray(intakeStage.results) ||
         !bottleneckStage ||
-        !Array.isArray(bottleneckStage.findings)
+        !Array.isArray(bottleneckStage.findings) ||
+        !coordinatorStage ||
+        !coordinatorStage.summary ||
+        !Array.isArray(coordinatorStage.recommendations) ||
+        !communicationStage ||
+        !communicationStage.summary ||
+        !Array.isArray(communicationStage.results) ||
+        !auditStage ||
+        !auditStage.summary ||
+        !Array.isArray(auditStage.results)
       ) {
         throw new Error(
-          "The workflow response is missing one or more agent results."
+          "The orchestrator response is missing one or more agent results."
         );
       }
-
-      const coordinatorResponse = await fetch(
-        "/api/agents/coordinator",
-        {
-          method: "GET",
-          cache: "no-store",
-        }
-      );
-      
-      const coordinatorData = await coordinatorResponse.json();
-      
-      if (
-        !coordinatorResponse.ok ||
-        !coordinatorData.ok ||
-        !coordinatorData.summary ||
-        !Array.isArray(coordinatorData.recommendations)
-      ) {
-        throw new Error(
-          coordinatorData.message ||
-            "The Workflow Coordinator could not complete its analysis."
-        );
-      }
-
-      const communicationResponse = await fetch(
-        "/api/agents/communication",
-        {
-          method: "GET",
-          cache: "no-store",
-        }
-      );
-      
-      const communicationData = await communicationResponse.json();
-      
-      if (
-        !communicationResponse.ok ||
-        !communicationData.ok ||
-        !communicationData.summary ||
-        !Array.isArray(communicationData.results)
-      ) {
-        throw new Error(
-          communicationData.message ||
-            "The Communication Agent could not prepare drafts."
-        );
-      }
-
-      const auditResponse = await fetch("/api/agents/audit", {
-        method: "GET",
-        cache: "no-store",
-      });
-      
-      const auditData = await auditResponse.json();
-      
-      if (
-        !auditResponse.ok ||
-        !auditData.ok ||
-        !auditData.summary ||
-        !Array.isArray(auditData.results)
-      ) {
-        throw new Error(
-          auditData.message || "The Audit Agent could not complete its checks."
-        );
-      }
- 
+  
+      // Refresh operational issues after the workflow completes.
       const issuesResponse = await fetch("/api/issues", {
         method: "GET",
         cache: "no-store",
@@ -597,12 +565,14 @@ export default function Home() {
         !Array.isArray(issuesData.issues)
       ) {
         throw new Error(
-          issuesData.message || "Could not refresh operational issues."
+          issuesData.message ||
+            "Could not refresh operational issues."
         );
       }
   
       setIssues(issuesData.issues as Issue[]);
   
+      // Populate the five dashboard result panels.
       setIntakeResults({
         summary: {
           totalRecords: intakeStage.totalRecords,
@@ -620,24 +590,35 @@ export default function Home() {
         },
         findings: bottleneckStage.findings,
       });
-
+  
       setCoordinatorResults({
-        summary: coordinatorData.summary,
-        recommendations: coordinatorData.recommendations,
+        summary: coordinatorStage.summary,
+        recommendations: coordinatorStage.recommendations,
       });
-
+  
       setCommunicationResults({
-        summary: communicationData.summary,
-        results: communicationData.results,
+        summary: communicationStage.summary,
+        results: communicationStage.results,
       });
-
+  
       setAuditResults({
-        summary: auditData.summary,
-        results: auditData.results,
+        summary: auditStage.summary,
+        results: auditStage.results,
       });
-      
+  
+      const workflowMessage =
+        data.status === "completed"
+          ? "completed successfully"
+          : "completed with issues requiring attention";
+  
       setScanMessage(
-        `Workflow ${data.status === "completed" ? "completed successfully" : "completed with validation issues"}. Intake: ${intakeStage.validRecords}/${intakeStage.totalRecords} valid records. Bottleneck Detection: ${bottleneckStage.bottlenecksFound} findings across ${bottleneckStage.recordsFlagged} records.`
+        `Workflow ${workflowMessage}. ` +
+          `Intake: ${intakeStage.validRecords}/${intakeStage.totalRecords} valid records. ` +
+          `Bottleneck Detection: ${bottleneckStage.bottlenecksFound} findings across ${bottleneckStage.recordsFlagged} records. ` +
+          `Coordinator: ${coordinatorStage.summary.recommendationsGenerated} recommendations. ` +
+          `Communication: ${communicationStage.summary.draftsGenerated} drafts. ` +
+          `Audit: ${auditStage.summary.actionsReviewed} actions reviewed, ` +
+          `${auditStage.summary.requiringReview} requiring review.`
       );
     } catch (error) {
       console.error("Agent workflow failed:", error);
