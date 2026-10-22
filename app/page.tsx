@@ -971,13 +971,35 @@ export default function Home() {
                   </div>
                 </div>
               )}
-
+       
               {bottleneckResults && (
-                <div className="panel" style={{ marginBottom: 20, padding: 20 }}>
-                  <h2 style={{ marginTop: 0 }}>Bottleneck Detection Results</h2>
-                  <p>
-                    Rule-based analysis of the current demo records.
-                  </p>
+                <div className="panel" style={{ marginBottom: 20, padding: 24 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      flexWrap: "wrap",
+                      gap: 12,
+                      marginBottom: 20,
+                    }}
+                  >
+                    <div>
+                      <div className="eyebrow">AGENT ANALYSIS · STAGE 02</div>
+                      <h2 style={{ marginTop: 6, marginBottom: 8 }}>
+                        Bottleneck Detection Results
+                      </h2>
+                      <p style={{ margin: 0, color: "var(--muted)" }}>
+                        Rule-based detection of unresolved issues that may need attention.
+                      </p>
+                    </div>
+              
+                    <span className="coming-soon">
+                      {bottleneckResults.summary.bottlenecksFound > 0
+                        ? "ATTENTION REQUIRED"
+                        : "NO FINDINGS"}
+                    </span>
+                  </div>
               
                   <div className="metrics-grid">
                     <div className="metric-card">
@@ -985,13 +1007,15 @@ export default function Home() {
                       <div className="metric-value">
                         {bottleneckResults.summary.totalRecords}
                       </div>
+                      <div className="metric-foot">Records analyzed</div>
                     </div>
               
                     <div className="metric-card">
-                      <div className="metric-label">Findings</div>
+                      <div className="metric-label">Findings detected</div>
                       <div className="metric-value">
                         {bottleneckResults.summary.bottlenecksFound}
                       </div>
+                      <div className="metric-foot">Potential bottlenecks</div>
                     </div>
               
                     <div className="metric-card">
@@ -999,37 +1023,151 @@ export default function Home() {
                       <div className="metric-value">
                         {bottleneckResults.summary.recordsFlagged}
                       </div>
+                      <div className="metric-foot">Require closer review</div>
                     </div>
                   </div>
               
                   {bottleneckResults.findings.length === 0 ? (
-                    <p style={{ marginTop: 16 }}>
-                      No bottlenecks detected by the current rules.
-                    </p>
+                    <div
+                      className="empty-state"
+                      style={{ marginTop: 20, padding: 24 }}
+                    >
+                      <div className="empty-state-icon">
+                        <CheckCircle2 size={25} />
+                      </div>
+                      <h3>No bottlenecks detected</h3>
+                      <p>
+                        The current rules did not flag any records. This does not
+                        guarantee that no operational delays exist.
+                      </p>
+                    </div>
                   ) : (
-                    <div style={{ overflowX: "auto", marginTop: 16 }}>
-                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                        <thead>
-                          <tr>
-                            <th style={{ textAlign: "left", padding: 10 }}>Reference</th>
-                            <th style={{ textAlign: "left", padding: 10 }}>Record</th>
-                            <th style={{ textAlign: "left", padding: 10 }}>Severity</th>
-                            <th style={{ textAlign: "left", padding: 10 }}>Finding</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {bottleneckResults.findings.map((item, index) => (
-                            <tr key={`${item.reference}-${index}`}>
-                              <td style={{ padding: 10 }}>{item.reference}</td>
-                              <td style={{ padding: 10 }}>{item.title}</td>
-                              <td style={{ padding: 10 }}>{item.severity}</td>
-                              <td style={{ padding: 10 }}>{item.finding}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    <div style={{ marginTop: 24 }}>
+                      <div className="section-heading" style={{ marginBottom: 14 }}>
+                        <div>
+                          <h3 style={{ margin: 0 }}>Findings requiring attention</h3>
+                          <p style={{ marginTop: 5 }}>
+                            Review each finding before taking operational action.
+                          </p>
+                        </div>
+                        <span className="count-pill">
+                          {bottleneckResults.findings.length} findings
+                        </span>
+                      </div>
+              
+                      <div style={{ display: "grid", gap: 12 }}>
+                        {bottleneckResults.findings.map((item, index) => {
+                          const severity = item.severity.toLowerCase();
+                          const severityColor =
+                            severity === "critical"
+                              ? "#b42318"
+                              : severity === "high"
+                                ? "#c2410c"
+                                : severity === "medium"
+                                  ? "#a16207"
+                                  : "#475569";
+              
+                          const severityBackground =
+                            severity === "critical"
+                              ? "#fef3f2"
+                              : severity === "high"
+                                ? "#fff7ed"
+                                : severity === "medium"
+                                  ? "#fefce8"
+                                  : "#f1f5f9";
+              
+                          return (
+                            <article
+                              key={`${item.reference}-${index}`}
+                              style={{
+                                border: "1px solid var(--border)",
+                                borderRadius: 12,
+                                padding: 18,
+                                display: "grid",
+                                gap: 12,
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  flexWrap: "wrap",
+                                  gap: 10,
+                                }}
+                              >
+                                <div>
+                                  <div
+                                    style={{
+                                      fontSize: 12,
+                                      color: "var(--muted)",
+                                      marginBottom: 5,
+                                    }}
+                                  >
+                                    ISSUE REFERENCE
+                                  </div>
+                                  <strong>{item.reference}</strong>
+                                </div>
+              
+                                <span
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    padding: "5px 10px",
+                                    borderRadius: 999,
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                    color: severityColor,
+                                    background: severityBackground,
+                                    textTransform: "uppercase",
+                                  }}
+                                >
+                                  {item.severity || "Unspecified"} severity
+                                </span>
+                              </div>
+              
+                              <div>
+                                <h4 style={{ margin: "0 0 6px", fontSize: 16 }}>
+                                  {item.title || "Untitled operational record"}
+                                </h4>
+                                <p style={{ margin: 0, lineHeight: 1.6 }}>
+                                  {item.finding}
+                                </p>
+                              </div>
+              
+                              <div
+                                style={{
+                                  borderTop: "1px solid var(--border)",
+                                  paddingTop: 12,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 8,
+                                  color: "var(--muted)",
+                                  fontSize: 13,
+                                }}
+                              >
+                                <AlertTriangle size={16} />
+                                Suggested next step: review this finding with the
+                                responsible department.
+                              </div>
+                            </article>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
+              
+                  <p
+                    style={{
+                      marginBottom: 0,
+                      marginTop: 20,
+                      color: "var(--muted)",
+                      fontSize: 13,
+                    }}
+                  >
+                    These are rule-based findings, not clinical judgments. Human
+                    review is required before consequential operational decisions.
+                  </p>
                 </div>
               )}
 
