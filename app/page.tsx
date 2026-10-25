@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
+  ClipboardCheck,
   Clock3,
   FileCheck2,
   FileText,
@@ -1808,13 +1809,29 @@ export default function Home() {
               )}
 
               {auditResults && (
-                <div className="panel" style={{ marginBottom: 20, padding: 20 }}>
-                  <h2 style={{ marginTop: 0 }}>Audit Agent Results</h2>
+                <div className="panel" style={{ marginBottom: 20, padding: 24 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      flexWrap: "wrap",
+                      gap: 12,
+                      marginBottom: 20,
+                    }}
+                  >
+                    <div>
+                      <div className="eyebrow">AGENT ANALYSIS · STAGE 05</div>
+                      <h2 style={{ marginTop: 6, marginBottom: 8 }}>
+                        Audit Agent Results
+                      </h2>
+                      <p style={{ margin: 0, color: "var(--muted)" }}>
+                        Review of workflow actions, approval decisions, and associated audit events.
+                      </p>
+                    </div>
               
-                  <p>
-                    Verification of workflow actions and associated approval
-                    records. Findings indicate whether additional review is needed.
-                  </p>
+                    <span className="coming-soon">LIMITED AUDIT CHECKS</span>
+                  </div>
               
                   <div className="metrics-grid">
                     <div className="metric-card">
@@ -1822,6 +1839,7 @@ export default function Home() {
                       <div className="metric-value">
                         {auditResults.summary.actionsReviewed}
                       </div>
+                      <div className="metric-foot">Workflow actions assessed</div>
                     </div>
               
                     <div className="metric-card">
@@ -1829,13 +1847,15 @@ export default function Home() {
                       <div className="metric-value">
                         {auditResults.summary.auditEventsReviewed}
                       </div>
+                      <div className="metric-foot">Associated events examined</div>
                     </div>
               
                     <div className="metric-card">
-                      <div className="metric-label">Passed</div>
+                      <div className="metric-label">Passed checks</div>
                       <div className="metric-value">
                         {auditResults.summary.passed}
                       </div>
+                      <div className="metric-foot">Passed the current rules</div>
                     </div>
               
                     <div className="metric-card">
@@ -1843,55 +1863,295 @@ export default function Home() {
                       <div className="metric-value">
                         {auditResults.summary.requiringReview}
                       </div>
+                      <div className="metric-foot">Need further examination</div>
                     </div>
                   </div>
               
                   {auditResults.results.length === 0 ? (
-                    <p style={{ marginTop: 16 }}>
-                      No workflow actions were available for audit.
-                    </p>
+                    <div className="empty-state" style={{ marginTop: 20, padding: 24 }}>
+                      <div className="empty-state-icon">
+                        <ClipboardCheck size={25} />
+                      </div>
+                      <h3>No workflow actions available</h3>
+                      <p>
+                        The Audit Agent did not return any workflow actions to review
+                        during this scan.
+                      </p>
+                    </div>
                   ) : (
-                    <div style={{ overflowX: "auto", marginTop: 16 }}>
-                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                        <thead>
-                          <tr>
-                            <th style={{ textAlign: "left", padding: 10 }}>Action</th>
-                            <th style={{ textAlign: "left", padding: 10 }}>Status</th>
-                            <th style={{ textAlign: "left", padding: 10 }}>Audit events</th>
-                            <th style={{ textAlign: "left", padding: 10 }}>Decision</th>
-                            <th style={{ textAlign: "left", padding: 10 }}>Findings</th>
-                          </tr>
-                        </thead>
+                    <div style={{ marginTop: 24 }}>
+                      <div className="section-heading" style={{ marginBottom: 14 }}>
+                        <div>
+                          <h3 style={{ margin: 0 }}>Action review details</h3>
+                          <p style={{ marginTop: 5 }}>
+                            Inspect recorded decisions and findings for each action.
+                          </p>
+                        </div>
               
-                        <tbody>
-                          {auditResults.results.map((item) => (
-                            <tr key={item.actionId}>
-                              <td style={{ padding: 10 }}>
-                                <strong>{item.actionType}</strong>
-                                <div style={{ marginTop: 4 }}>{item.description}</div>
-                              </td>
-                              <td style={{ padding: 10 }}>{item.status}</td>
-                              <td style={{ padding: 10 }}>{item.auditEventsFound}</td>
-                              <td style={{ padding: 10 }}>{item.decision}</td>
-                              <td style={{ padding: 10 }}>
-                                {item.findings.length > 0
-                                  ? item.findings.join(" ")
-                                  : "No findings"}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                        <span className="count-pill">
+                          {auditResults.results.length} actions
+                        </span>
+                      </div>
+              
+                      <div style={{ display: "grid", gap: 14 }}>
+                        {auditResults.results.map((item) => {
+                          const requiresReview =
+                            item.findings.length > 0 ||
+                            item.decision.toLowerCase().includes("review");
+              
+                          return (
+                            <article
+                              key={item.actionId}
+                              style={{
+                                border: "1px solid var(--border)",
+                                borderRadius: 12,
+                                padding: 18,
+                                display: "grid",
+                                gap: 14,
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "flex-start",
+                                  flexWrap: "wrap",
+                                  gap: 12,
+                                }}
+                              >
+                                <div style={{ flex: "1 1 240px" }}>
+                                  <div
+                                    style={{
+                                      color: "var(--muted)",
+                                      fontSize: 12,
+                                      marginBottom: 5,
+                                    }}
+                                  >
+                                    WORKFLOW ACTION
+                                  </div>
+              
+                                  <h4 style={{ margin: "0 0 6px", fontSize: 17 }}>
+                                    {item.actionType}
+                                  </h4>
+              
+                                  <p style={{ margin: 0, lineHeight: 1.6 }}>
+                                    {item.description || "No description provided."}
+                                  </p>
+              
+                                  <div
+                                    style={{
+                                      color: "var(--muted)",
+                                      fontSize: 12,
+                                      marginTop: 8,
+                                      overflowWrap: "anywhere",
+                                    }}
+                                  >
+                                    Action ID: {item.actionId}
+                                  </div>
+                                </div>
+              
+                                <span
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    padding: "6px 10px",
+                                    borderRadius: 999,
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                    color: requiresReview ? "#92400e" : "#166534",
+                                    background: requiresReview ? "#fef3c7" : "#dcfce7",
+                                  }}
+                                >
+                                  {requiresReview ? "REVIEW NEEDED" : "NO FINDINGS REPORTED"}
+                                </span>
+                              </div>
+              
+                              <div
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+                                  gap: 12,
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    border: "1px solid var(--border)",
+                                    borderRadius: 10,
+                                    padding: 12,
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      color: "var(--muted)",
+                                      fontSize: 12,
+                                      marginBottom: 5,
+                                    }}
+                                  >
+                                    ACTION STATUS
+                                  </div>
+                                  <div style={{ fontWeight: 600 }}>
+                                    {item.status || "Not specified"}
+                                  </div>
+                                </div>
+              
+                                <div
+                                  style={{
+                                    border: "1px solid var(--border)",
+                                    borderRadius: 10,
+                                    padding: 12,
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      color: "var(--muted)",
+                                      fontSize: 12,
+                                      marginBottom: 5,
+                                    }}
+                                  >
+                                    RECORDED DECISION
+                                  </div>
+                                  <div style={{ fontWeight: 600 }}>
+                                    {item.decision || "No decision recorded"}
+                                  </div>
+                                </div>
+              
+                                <div
+                                  style={{
+                                    border: "1px solid var(--border)",
+                                    borderRadius: 10,
+                                    padding: 12,
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      color: "var(--muted)",
+                                      fontSize: 12,
+                                      marginBottom: 5,
+                                    }}
+                                  >
+                                    AUDIT EVENTS FOUND
+                                  </div>
+                                  <div style={{ fontWeight: 600 }}>
+                                    {item.auditEventsFound}
+                                  </div>
+                                </div>
+              
+                                <div
+                                  style={{
+                                    border: "1px solid var(--border)",
+                                    borderRadius: 10,
+                                    padding: 12,
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      color: "var(--muted)",
+                                      fontSize: 12,
+                                      marginBottom: 5,
+                                    }}
+                                  >
+                                    APPROVAL REQUIREMENT
+                                  </div>
+                                  <div style={{ fontWeight: 600 }}>
+                                    {item.requiresHumanApproval
+                                      ? "Human approval required"
+                                      : "Not flagged as required"}
+                                  </div>
+                                </div>
+                              </div>
+              
+                              <div
+                                style={{
+                                  borderRadius: 10,
+                                  padding: 14,
+                                  background: "var(--surface-secondary)",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                    marginBottom: 8,
+                                  }}
+                                >
+                                  AUDIT FINDINGS
+                                </div>
+              
+                                {item.findings.length > 0 ? (
+                                  <ul
+                                    style={{
+                                      margin: 0,
+                                      paddingLeft: 20,
+                                      lineHeight: 1.8,
+                                    }}
+                                  >
+                                    {item.findings.map((finding, index) => (
+                                      <li key={`${item.actionId}-finding-${index}`}>
+                                        {finding}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                ) : (
+                                  <p style={{ margin: 0, lineHeight: 1.6 }}>
+                                    No findings were reported by the current audit rules.
+                                    This is not a guarantee that the action is safe or
+                                    compliant.
+                                  </p>
+                                )}
+                              </div>
+              
+                              {item.requiresHumanApproval && (
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "flex-start",
+                                    gap: 10,
+                                    lineHeight: 1.6,
+                                  }}
+                                >
+                                  <ShieldCheck size={19} style={{ flexShrink: 0 }} />
+                                  <div>
+                                    <strong>Human approval is part of this workflow</strong>
+                                    <div
+                                      style={{
+                                        color: "var(--muted)",
+                                        fontSize: 13,
+                                        marginTop: 4,
+                                      }}
+                                    >
+                                      Verify the recorded decision and supporting audit
+                                      events before relying on this action's status.
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </article>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
               
-                  <p style={{ marginBottom: 0, marginTop: 16, opacity: 0.8 }}>
-                    This prototype performs limited audit checks. It does not
-                    independently establish compliance or guarantee action safety.
-                  </p>
+                  <div
+                    style={{
+                      marginTop: 20,
+                      padding: 14,
+                      borderRadius: 10,
+                      background: "var(--surface-secondary)",
+                      fontSize: 13,
+                      lineHeight: 1.7,
+                      color: "var(--muted)",
+                    }}
+                  >
+                    <strong>Audit limitation:</strong> This prototype performs limited,
+                    rule-based checks of workflow actions and associated audit events.
+                    It does not constitute a comprehensive compliance, security, or
+                    clinical safety audit, and a recorded decision alone does not
+                    establish that an action was appropriate.
+                  </div>
                 </div>
               )}
-
+              
               <div className="workflow-list">
                 {[
                   ["01", "Intake Agent", "Validate incoming records and required fields.", FileText],
