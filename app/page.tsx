@@ -695,6 +695,34 @@ export default function Home() {
   const isOverview = activeNav === "Dashboard";
   const isApprovals = activeNav === "Approvals";
 
+  const dashboardOpenOnly = issues.filter(
+    (issue) => issue.status === "Open"
+  ).length;
+  
+  const dashboardInReview = issues.filter(
+    (issue) => issue.status === "In review"
+  ).length;
+  
+  const dashboardResolved = issues.filter(
+    (issue) => issue.status === "Resolved"
+  ).length;
+  
+  const dashboardTotal =
+    dashboardOpenOnly + dashboardInReview + dashboardResolved;
+  
+  const openPercent = dashboardTotal
+    ? (dashboardOpenOnly / dashboardTotal) * 100
+    : 0;
+  
+  const reviewPercent = dashboardTotal
+    ? (dashboardInReview / dashboardTotal) * 100
+    : 0;
+  
+  const resolvedPercent = dashboardTotal
+    ? (dashboardResolved / dashboardTotal) * 100
+    : 0;
+
+  
   return (
     <main className="app-shell">
       {mobileMenuOpen && (
@@ -916,21 +944,21 @@ export default function Home() {
                   </p>
               
                   <div className="metrics-grid">
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">Records checked</div>
                       <div className="metric-value">
                         {intakeResults.summary.totalRecords}
                       </div>
                     </div>
               
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">Valid records</div>
                       <div className="metric-value">
                         {intakeResults.summary.validRecords}
                       </div>
                     </div>
               
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">Invalid records</div>
                       <div className="metric-value">
                         {intakeResults.summary.invalidRecords}
@@ -1003,7 +1031,7 @@ export default function Home() {
                   </div>
               
                   <div className="metrics-grid">
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">Records checked</div>
                       <div className="metric-value">
                         {bottleneckResults.summary.totalRecords}
@@ -1011,7 +1039,7 @@ export default function Home() {
                       <div className="metric-foot">Records analyzed</div>
                     </div>
               
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">Findings detected</div>
                       <div className="metric-value">
                         {bottleneckResults.summary.bottlenecksFound}
@@ -1019,7 +1047,7 @@ export default function Home() {
                       <div className="metric-foot">Potential bottlenecks</div>
                     </div>
               
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">Records flagged</div>
                       <div className="metric-value">
                         {bottleneckResults.summary.recordsFlagged}
@@ -1199,7 +1227,7 @@ export default function Home() {
                   </div>
               
                   <div className="metrics-grid">
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">Records reviewed</div>
                       <div className="metric-value">
                         {coordinatorResults.summary.totalRecords}
@@ -1207,7 +1235,7 @@ export default function Home() {
                       <div className="metric-foot">Records assessed</div>
                     </div>
               
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">Recommendations</div>
                       <div className="metric-value">
                         {coordinatorResults.summary.recommendationsGenerated}
@@ -1215,7 +1243,7 @@ export default function Home() {
                       <div className="metric-foot">Suggested next steps</div>
                     </div>
               
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">Require action</div>
                       <div className="metric-value">
                         {coordinatorResults.summary.actionRequired}
@@ -1223,7 +1251,7 @@ export default function Home() {
                       <div className="metric-foot">Need follow-up</div>
                     </div>
               
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">No action required</div>
                       <div className="metric-value">
                         {coordinatorResults.summary.noActionRequired}
@@ -1481,7 +1509,7 @@ export default function Home() {
                   </div>
               
                   <div className="metrics-grid">
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">Records reviewed</div>
                       <div className="metric-value">
                         {communicationResults.summary.totalRecords}
@@ -1489,7 +1517,7 @@ export default function Home() {
                       <div className="metric-foot">Records assessed</div>
                     </div>
               
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">Drafts generated</div>
                       <div className="metric-value">
                         {communicationResults.summary.draftsGenerated}
@@ -1497,7 +1525,7 @@ export default function Home() {
                       <div className="metric-foot">Prepared for review</div>
                     </div>
               
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">Records skipped</div>
                       <div className="metric-value">
                         {communicationResults.summary.recordsSkipped}
@@ -1505,7 +1533,7 @@ export default function Home() {
                       <div className="metric-foot">No draft prepared</div>
                     </div>
               
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">Require review</div>
                       <div className="metric-value">
                         {communicationResults.summary.draftsRequiringReview}
@@ -1834,7 +1862,7 @@ export default function Home() {
                   </div>
               
                   <div className="metrics-grid">
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">Actions reviewed</div>
                       <div className="metric-value">
                         {auditResults.summary.actionsReviewed}
@@ -1842,7 +1870,7 @@ export default function Home() {
                       <div className="metric-foot">Workflow actions assessed</div>
                     </div>
               
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">Audit events</div>
                       <div className="metric-value">
                         {auditResults.summary.auditEventsReviewed}
@@ -1850,7 +1878,7 @@ export default function Home() {
                       <div className="metric-foot">Associated events examined</div>
                     </div>
               
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">Passed checks</div>
                       <div className="metric-value">
                         {auditResults.summary.passed}
@@ -1858,7 +1886,7 @@ export default function Home() {
                       <div className="metric-foot">Passed the current rules</div>
                     </div>
               
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-label">Require review</div>
                       <div className="metric-value">
                         {auditResults.summary.requiringReview}
@@ -2488,7 +2516,7 @@ export default function Home() {
                   </div>
               
                   <div className="metrics-grid">
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-top">
                         <span className="metric-label">Open issues</span>
                         <div className="metric-icon metric-blue"><ListTodo size={19} /></div>
@@ -2497,7 +2525,7 @@ export default function Home() {
                       <div className="metric-foot">Unresolved operational records</div>
                     </div>
               
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-top">
                         <span className="metric-label">Critical issues</span>
                         <div className="metric-icon metric-red"><AlertTriangle size={19} /></div>
@@ -2506,7 +2534,7 @@ export default function Home() {
                       <div className="metric-foot">Require prompt human review</div>
                     </div>
               
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-top">
                         <span className="metric-label">Awaiting review</span>
                         <div className="metric-icon metric-amber"><Clock3 size={19} /></div>
@@ -2515,7 +2543,7 @@ export default function Home() {
                       <div className="metric-foot">Human decisions pending</div>
                     </div>
               
-                    <div className="metric-card">
+                    <div className="metric-card dashboard-green-card">
                       <div className="metric-top">
                         <span className="metric-label">Resolved issues</span>
                         <div className="metric-icon metric-green"><CheckCircle2 size={19} /></div>
