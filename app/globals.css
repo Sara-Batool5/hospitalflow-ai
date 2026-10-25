@@ -2252,3 +2252,39 @@ input:focus:not(:focus-visible) {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* HospitalFlow AI dashboard refinements */
+.dashboard-green-card {
+  background: linear-gradient(135deg, #064e46 0%, #087f70 65%, #12a78b 100%);
+  border: 1px solid rgba(13, 148, 136, 0.35);
+  color: #ffffff;
+  box-shadow: 0 8px 22px rgba(6, 78, 70, 0.12);
+}
+
+.dashboard-green-card .metric-label,
+.dashboard-green-card .metric-foot,
+.dashboard-green-card .metric-foot span {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dashboard-green-card .metric-value {
+  color: #ffffff;
+}
+
+.dashboard-green-card .metric-icon {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.dashboard-green-card .metric-success,
+.dashboard-green-card .metric-warning,
+.dashboard-green-card .metric-alert,
+.dashboard-green-card .metric-neutral {
+  color: #ffffff;
+}
+
+.dashboard-green-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(6, 78, 70, 0.18);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
