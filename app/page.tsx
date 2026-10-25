@@ -1455,15 +1455,29 @@ export default function Home() {
               )}
 
               {communicationResults && (
-                <div className="panel" style={{ marginBottom: 20, padding: 20 }}>
-                  <h2 style={{ marginTop: 0 }}>
-                    Communication Agent Results
-                  </h2>
+                <div className="panel" style={{ marginBottom: 20, padding: 24 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      flexWrap: "wrap",
+                      gap: 12,
+                      marginBottom: 20,
+                    }}
+                  >
+                    <div>
+                      <div className="eyebrow">AGENT ANALYSIS · STAGE 04</div>
+                      <h2 style={{ marginTop: 6, marginBottom: 8 }}>
+                        Communication Agent Results
+                      </h2>
+                      <p style={{ margin: 0, color: "var(--muted)" }}>
+                        Departmental follow-up drafts prepared for human review.
+                      </p>
+                    </div>
               
-                  <p>
-                    Departmental follow-up drafts prepared for human review.
-                    No messages are sent automatically.
-                  </p>
+                    <span className="coming-soon">DRAFTS ONLY · NO AUTO-SENDING</span>
+                  </div>
               
                   <div className="metrics-grid">
                     <div className="metric-card">
@@ -1471,6 +1485,7 @@ export default function Home() {
                       <div className="metric-value">
                         {communicationResults.summary.totalRecords}
                       </div>
+                      <div className="metric-foot">Records assessed</div>
                     </div>
               
                     <div className="metric-card">
@@ -1478,6 +1493,7 @@ export default function Home() {
                       <div className="metric-value">
                         {communicationResults.summary.draftsGenerated}
                       </div>
+                      <div className="metric-foot">Prepared for review</div>
                     </div>
               
                     <div className="metric-card">
@@ -1485,6 +1501,7 @@ export default function Home() {
                       <div className="metric-value">
                         {communicationResults.summary.recordsSkipped}
                       </div>
+                      <div className="metric-foot">No draft prepared</div>
                     </div>
               
                     <div className="metric-card">
@@ -1492,69 +1509,301 @@ export default function Home() {
                       <div className="metric-value">
                         {communicationResults.summary.draftsRequiringReview}
                       </div>
+                      <div className="metric-foot">Human review required</div>
                     </div>
                   </div>
               
                   {communicationResults.results.length === 0 ? (
-                    <p style={{ marginTop: 16 }}>
-                      No records were available for communication review.
-                    </p>
+                    <div className="empty-state" style={{ marginTop: 20, padding: 24 }}>
+                      <div className="empty-state-icon">
+                        <CheckCircle2 size={25} />
+                      </div>
+                      <h3>No communication records returned</h3>
+                      <p>
+                        The Communication Agent did not return any records for
+                        review during this scan.
+                      </p>
+                    </div>
                   ) : (
-                    <div style={{ marginTop: 16 }}>
-                      {communicationResults.results.map((item) => (
-                        <div
-                          key={item.reference}
-                          style={{
-                            border: "1px solid var(--border)",
-                            borderRadius: 10,
-                            padding: 16,
-                            marginBottom: 12,
-                          }}
-                        >
-                          <div style={{ fontWeight: 600 }}>
-                            {item.reference} — {item.title}
-                          </div>
-              
-                          <p style={{ marginBottom: 8 }}>
-                            Department: {item.department}
+                    <div style={{ marginTop: 24 }}>
+                      <div className="section-heading" style={{ marginBottom: 14 }}>
+                        <div>
+                          <h3 style={{ margin: 0 }}>Departmental follow-ups</h3>
+                          <p style={{ marginTop: 5 }}>
+                            Review each draft before using it.
                           </p>
+                        </div>
+                        <span className="count-pill">
+                          {communicationResults.summary.draftsGenerated} drafts
+                        </span>
+                      </div>
               
-                          <p style={{ marginBottom: 12 }}>
-                            Status: {item.status === "draft_ready"
-                              ? "Draft ready for review"
-                              : "Skipped"}
-                          </p>
+                      <div style={{ display: "grid", gap: 14 }}>
+                        {communicationResults.results.map((item) => {
+                          const draftReady = item.status === "draft_ready";
               
-                          <p>{item.reason}</p>
-              
-                          {item.draft && (
-                            <div style={{ marginTop: 12 }}>
-                              <div style={{ fontWeight: 600 }}>
-                                {item.draft.subject}
-                              </div>
-              
-                              <pre
+                          return (
+                            <article
+                              key={item.reference}
+                              style={{
+                                border: "1px solid var(--border)",
+                                borderRadius: 12,
+                                padding: 18,
+                                display: "grid",
+                                gap: 14,
+                              }}
+                            >
+                              <div
                                 style={{
-                                  whiteSpace: "pre-wrap",
-                                  overflowWrap: "anywhere",
-                                  fontFamily: "inherit",
-                                  padding: 12,
-                                  borderRadius: 8,
-                                  background: "var(--surface)",
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "flex-start",
+                                  flexWrap: "wrap",
+                                  gap: 12,
                                 }}
                               >
-                                {item.draft.body}
-                              </pre>
+                                <div style={{ flex: "1 1 240px" }}>
+                                  <div
+                                    style={{
+                                      color: "var(--muted)",
+                                      fontSize: 12,
+                                      marginBottom: 5,
+                                    }}
+                                  >
+                                    ISSUE REFERENCE · {item.reference}
+                                  </div>
+                                  <h4 style={{ margin: 0, fontSize: 17 }}>
+                                    {item.title || "Untitled operational issue"}
+                                  </h4>
+                                </div>
               
-                              <p style={{ marginBottom: 0 }}>
-                                Human review required before sending.
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                                <span
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    padding: "6px 10px",
+                                    borderRadius: 999,
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                    color: draftReady ? "#166534" : "#92400e",
+                                    background: draftReady ? "#dcfce7" : "#fef3c7",
+                                  }}
+                                >
+                                  {draftReady ? "DRAFT READY FOR REVIEW" : "SKIPPED"}
+                                </span>
+                              </div>
+              
+                              <div
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                                  gap: 12,
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    border: "1px solid var(--border)",
+                                    borderRadius: 10,
+                                    padding: 12,
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      color: "var(--muted)",
+                                      fontSize: 12,
+                                      marginBottom: 5,
+                                    }}
+                                  >
+                                    RESPONSIBLE DEPARTMENT
+                                  </div>
+                                  <div style={{ fontWeight: 600 }}>
+                                    {item.department || "Unassigned"}
+                                  </div>
+                                </div>
+              
+                                <div
+                                  style={{
+                                    border: "1px solid var(--border)",
+                                    borderRadius: 10,
+                                    padding: 12,
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      color: "var(--muted)",
+                                      fontSize: 12,
+                                      marginBottom: 5,
+                                    }}
+                                  >
+                                    RECORD STATUS
+                                  </div>
+                                  <div style={{ fontWeight: 600 }}>
+                                    {item.status === "draft_ready"
+                                      ? "Draft prepared"
+                                      : item.status || "Not specified"}
+                                  </div>
+                                </div>
+                              </div>
+              
+                              <div
+                                style={{
+                                  padding: 14,
+                                  borderRadius: 10,
+                                  background: "var(--surface-secondary)",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    fontSize: 12,
+                                    color: "var(--muted)",
+                                    fontWeight: 700,
+                                    marginBottom: 6,
+                                  }}
+                                >
+                                  REASON FOR FOLLOW-UP
+                                </div>
+                                <p style={{ margin: 0, lineHeight: 1.6 }}>
+                                  {item.reason || "No reason was provided."}
+                                </p>
+                              </div>
+              
+                              {item.draft ? (
+                                <div
+                                  style={{
+                                    border: "1px solid var(--border)",
+                                    borderRadius: 12,
+                                    padding: 16,
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
+                                      flexWrap: "wrap",
+                                      gap: 10,
+                                      marginBottom: 14,
+                                    }}
+                                  >
+                                    <h4 style={{ margin: 0, fontSize: 16 }}>
+                                      Proposed message
+                                    </h4>
+              
+                                    <span
+                                      style={{
+                                        fontSize: 12,
+                                        fontWeight: 700,
+                                        color: "#92400e",
+                                        background: "#fef3c7",
+                                        padding: "5px 9px",
+                                        borderRadius: 999,
+                                      }}
+                                    >
+                                      {item.requiresHumanReview
+                                        ? "HUMAN REVIEW REQUIRED"
+                                        : "REVIEW BEFORE USE"}
+                                    </span>
+                                  </div>
+              
+                                  <div style={{ marginBottom: 14 }}>
+                                    <div
+                                      style={{
+                                        color: "var(--muted)",
+                                        fontSize: 12,
+                                        fontWeight: 700,
+                                        marginBottom: 6,
+                                      }}
+                                    >
+                                      SUBJECT
+                                    </div>
+                                    <div style={{ fontWeight: 600, lineHeight: 1.5 }}>
+                                      {item.draft.subject}
+                                    </div>
+                                  </div>
+              
+                                  <div>
+                                    <div
+                                      style={{
+                                        color: "var(--muted)",
+                                        fontSize: 12,
+                                        fontWeight: 700,
+                                        marginBottom: 6,
+                                      }}
+                                    >
+                                      MESSAGE BODY
+                                    </div>
+              
+                                    <pre
+                                      style={{
+                                        whiteSpace: "pre-wrap",
+                                        overflowWrap: "anywhere",
+                                        fontFamily: "inherit",
+                                        fontSize: 14,
+                                        lineHeight: 1.7,
+                                        margin: 0,
+                                        padding: 16,
+                                        borderRadius: 10,
+                                        background: "var(--surface)",
+                                        border: "1px solid var(--border)",
+                                      }}
+                                    >
+                                      {item.draft.body}
+                                    </pre>
+                                  </div>
+              
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "flex-start",
+                                      gap: 9,
+                                      marginTop: 14,
+                                      fontSize: 13,
+                                      color: "var(--muted)",
+                                      lineHeight: 1.6,
+                                    }}
+                                  >
+                                    <ShieldCheck size={18} style={{ flexShrink: 0 }} />
+                                    <span>
+                                      This is an unsent draft. Verify its content and
+                                      intended recipient before using it. No message
+                                      is sent by this agent.
+                                    </span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div
+                                  style={{
+                                    padding: 14,
+                                    borderRadius: 10,
+                                    background: "var(--surface-secondary)",
+                                    lineHeight: 1.6,
+                                  }}
+                                >
+                                  <strong>No draft prepared for this record.</strong>
+                                  <p style={{ margin: "5px 0 0" }}>
+                                    {item.reason ||
+                                      "This record was skipped by the current communication rules."}
+                                  </p>
+                                </div>
+                              )}
+                            </article>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
+              
+                  <p
+                    style={{
+                      marginBottom: 0,
+                      marginTop: 20,
+                      color: "var(--muted)",
+                      fontSize: 13,
+                    }}
+                  >
+                    Communication drafts are advisory. This prototype does not
+                    send messages automatically or connect to hospital messaging systems.
+                  </p>
                 </div>
               )}
 
