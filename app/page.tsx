@@ -97,7 +97,7 @@ const navGroups = [
   {
     label: "WORKSPACE",
     items: [
-      { label: "Overview", icon: LayoutDashboard },
+      { label: "Dashboard", icon: LayoutDashboard },
       { label: "All issues", icon: ListTodo, count: "05" },
       { label: "Agent workflow", icon: Workflow },
       { label: "Approvals", icon: ShieldCheck, count: "03" }
@@ -139,7 +139,7 @@ function IssueIcon({ type }: { type: Issue["icon"] }) {
 }
 
 export default function Home() {
-  const [activeNav, setActiveNav] = useState("Overview");
+  const [activeNav, setActiveNav] = useState("Dashboard");
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("All priorities");
   const [statusFilter, setStatusFilter] = useState("All statuses");
