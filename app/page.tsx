@@ -2657,46 +2657,63 @@ export default function Home() {
                   </div>
               
                   <div className="lower-grid">
-                    <section className="panel">
+                    
+                    <section className="panel dashboard-chart-panel">
                       <div className="panel-header">
                         <div>
                           <h2>Operational status</h2>
-                          <p>Current record distribution</p>
+                          <p>Distribution of current issues</p>
+                        </div>
+                        <span className="updated-label">Live records</span>
+                      </div>
+                    
+                      <div className="status-chart-layout">
+                        <div
+                          className="status-donut"
+                          role="img"
+                          aria-label={`${dashboardOpenOnly} open, ${dashboardInReview} in review, and ${dashboardResolved} resolved issues`}
+                          style={{
+                            background: dashboardTotal
+                              ? `conic-gradient(
+                                  #0f766e 0% ${openPercent}%,
+                                  #e9a23b ${openPercent}% ${openPercent + reviewPercent}%,
+                                  #a7d9c9 ${openPercent + reviewPercent}% 100%
+                                )`
+                              : "#e5e7eb"
+                          }}
+                        >
+                          <div className="status-donut-center">
+                            <strong>{dashboardTotal}</strong>
+                            <span>Total issues</span>
+                          </div>
+                        </div>
+                    
+                        <div className="status-legend">
+                          <div className="status-legend-row">
+                            <span className="status-legend-dot status-dot-open" />
+                            <span>Open</span>
+                            <strong>{dashboardOpenOnly}</strong>
+                          </div>
+                    
+                          <div className="status-legend-row">
+                            <span className="status-legend-dot status-dot-review" />
+                            <span>In review</span>
+                            <strong>{dashboardInReview}</strong>
+                          </div>
+                    
+                          <div className="status-legend-row">
+                            <span className="status-legend-dot status-dot-resolved" />
+                            <span>Resolved</span>
+                            <strong>{dashboardResolved}</strong>
+                          </div>
                         </div>
                       </div>
-              
-                      {[
-                        { label: "Open", count: openCount, color: "#D97706" },
-                        {
-                          label: "In review",
-                          count: issues.filter((issue) => issue.status === "In review").length,
-                          color: "#7C3AED"
-                        },
-                        { label: "Resolved", count: resolvedCount, color: "#0D9488" }
-                      ].map((item) => (
-                        <div key={item.label} style={{ marginBottom: 18 }}>
-                          <div style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            marginBottom: 7
-                          }}>
-                            <span>{item.label}</span>
-                            <strong>{item.count}</strong>
-                          </div>
-                          <div className="workload-track" style={{ height: 9 }}>
-                            <div
-                              style={{
-                                height: "100%",
-                                borderRadius: 8,
-                                background: item.color,
-                                width: `${issues.length ? (item.count / issues.length) * 100 : 0}%`
-                              }}
-                            />
-                          </div>
-                        </div>
-                      ))}
+                    
+                      <div className="chart-caption">
+                        Issue counts update when the dashboard's operational records refresh.
+                      </div>
                     </section>
-              
+
                     <section className="panel">
                       <div className="panel-header">
                         <div>
