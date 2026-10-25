@@ -692,7 +692,7 @@ export default function Home() {
   }
 
 
-  const isOverview = activeNav === "Overview";
+  const isOverview = activeNav === "Dashboard";
   const isApprovals = activeNav === "Approvals";
 
   return (
@@ -2429,13 +2429,23 @@ export default function Home() {
                   <div className="eyebrow">
                     {isApprovals ? "HUMAN OVERSIGHT" : "MONDAY, OCTOBER 19 · DEMO DATA"}
                   </div>
-                  <h1>{isApprovals ? "Pending approvals" : activeNav === "All issues" ? "All operational issues" : "Good morning, Admin"}<span className="heading-period">{isOverview ? "." : ""}</span></h1>
+                  <h1>
+                    {isApprovals
+                      ? "Pending approvals"
+                      : isOverview
+                        ? "Operations dashboard"
+                        : activeNav === "All issues"
+                          ? "All operational issues"
+                          : activeNav}
+                  </h1>
                   <p>
                     {isApprovals
                       ? "Review recommendations before any consequential action is taken."
                       : activeNav === "All issues"
                         ? "Search, filter, and inspect unresolved operational bottlenecks."
-                        : "Here’s your hospital operations overview for today."}
+                        : isOverview
+                          ? "Your hospital operations at a glance."
+                          : "Monitor and coordinate hospital operational workflows."}
                   </p>
                 </div>
                 <div className="heading-actions">
@@ -2463,177 +2473,244 @@ export default function Home() {
                 </div>
               )}
 
+              
               {isOverview && (
-                <>
+                <div className="dashboard-layout">
                   <div className="overview-banner">
-                    <div className="banner-icon"><Sparkles size={21} /></div>
+                    <div className="banner-icon"><Activity size={21} /></div>
                     <div className="banner-copy">
-                      <strong>Your operations command center is ready</strong>
-                      <span>Review simulated bottlenecks and coordinate the next administrative steps.</span>
+                      <strong>Operations command center</strong>
+                      <span>Monitor bottlenecks, departmental workload, and outstanding reviews.</span>
                     </div>
                     <button onClick={() => setActiveNav("Agent workflow")}>
-                      Explore agent workflow <ArrowRight size={15} />
+                      Run workflow <ArrowRight size={15} />
                     </button>
-                    <div className="banner-decoration"><Activity size={90} /></div>
                   </div>
-
-                  <div className="section-heading">
-                    <div>
-                      <h2>Operations at a glance</h2>
-                      <p>A live view of the current demo dataset.</p>
-                    </div>
-                    <span className="updated-label"><span className="system-status-dot" /> Sample data</span>
-                  </div>
-
+              
                   <div className="metrics-grid">
                     <div className="metric-card">
                       <div className="metric-top">
                         <span className="metric-label">Open issues</span>
                         <div className="metric-icon metric-blue"><ListTodo size={19} /></div>
                       </div>
-                      <div className="metric-value">{openCount.toString().padStart(2, "0")}</div>
-                      <div className="metric-foot"><span className="metric-neutral">{issues.length} total records</span><span>Across departments</span></div>
+                      <div className="metric-value">{openCount}</div>
+                      <div className="metric-foot">Unresolved operational records</div>
                     </div>
+              
                     <div className="metric-card">
                       <div className="metric-top">
-                        <span className="metric-label">Critical attention</span>
+                        <span className="metric-label">Critical issues</span>
                         <div className="metric-icon metric-red"><AlertTriangle size={19} /></div>
                       </div>
-                      <div className="metric-value">{criticalCount.toString().padStart(2, "0")}</div>
-                      <div className="metric-foot"><span className="metric-alert"><ArrowUpRight size={14} /> Priority</span><span>Needs prompt review</span></div>
+                      <div className="metric-value">{criticalCount}</div>
+                      <div className="metric-foot">Require prompt human review</div>
                     </div>
+              
                     <div className="metric-card">
                       <div className="metric-top">
                         <span className="metric-label">Awaiting review</span>
                         <div className="metric-icon metric-amber"><Clock3 size={19} /></div>
                       </div>
-                      <div className="metric-value">{reviewCount.toString().padStart(2, "0")}</div>
-                      <div className="metric-foot"><span className="metric-warning">Human oversight</span><span>Not yet resolved</span></div>
+                      <div className="metric-value">{reviewCount}</div>
+                      <div className="metric-foot">Human decisions pending</div>
                     </div>
+              
                     <div className="metric-card">
                       <div className="metric-top">
-                        <span className="metric-label">Resolved</span>
+                        <span className="metric-label">Resolved issues</span>
                         <div className="metric-icon metric-green"><CheckCircle2 size={19} /></div>
                       </div>
-                      <div className="metric-value">{resolvedCount.toString().padStart(2, "0")}</div>
-                      <div className="metric-foot"><span className="metric-success"><ArrowUpRight size={14} /> Completed</span><span>In this session</span></div>
+                      <div className="metric-value">{resolvedCount}</div>
+                      <div className="metric-foot">Marked resolved in the records</div>
                     </div>
                   </div>
-
+              
                   <div className="content-grid">
                     <section className="panel issues-panel">
                       <div className="panel-header">
                         <div>
-                          <div className="panel-title-row"><h2>Priority queue</h2><span className="count-pill">{issues.filter((issue) => issue.status !== "Resolved").length}</span></div>
-                          <p>Operational issues that need attention</p>
+                          <h2>Priority queue</h2>
+                          <p>Issues that may need attention</p>
                         </div>
-                        <button className="text-button" onClick={() => setActiveNav("All issues")}>View all <ArrowRight size={15} /></button>
+                        <button className="text-button" onClick={() => setActiveNav("All issues")}>
+                          View all <ArrowRight size={15} />
+                        </button>
                       </div>
-
+              
                       <div className="issue-list">
-                        {issues.filter((issue) => issue.status !== "Resolved").slice(0, 4).map((issue) => (
-                          <button className="issue-row" key={issue.id} onClick={() => setSelectedIssue(issue)}>
-                            <div className={`issue-type-icon issue-type-${issue.icon}`}><IssueIcon type={issue.icon} /></div>
-                            <div className="issue-main">
-                              <strong>{issue.title}</strong>
-                              <span>{issue.id} <span className="metadata-divider">·</span> {issue.department}</span>
-                            </div>
-                            <div className="issue-trailing">
-                              <PriorityBadge priority={issue.priority} />
-                              <span className="issue-age"><Clock3 size={12} />{issue.age}</span>
-                            </div>
-                            <ChevronRight size={16} className="issue-chevron" />
-                          </button>
-                        ))}
+                        {issues
+                          .filter((issue) => issue.status !== "Resolved")
+                          .sort((a, b) => {
+                            const rank: Record<string, number> = {
+                              Critical: 0, High: 1, Medium: 2, Low: 3
+                            };
+                            return (rank[a.priority] ?? 4) - (rank[b.priority] ?? 4);
+                          })
+                          .slice(0, 4)
+                          .map((issue) => (
+                            <button
+                              className="issue-row"
+                              key={issue.id}
+                              onClick={() => setSelectedIssue(issue)}
+                            >
+                              <div className={`issue-type-icon issue-type-${issue.icon}`}>
+                                <IssueIcon type={issue.icon} />
+                              </div>
+                              <div className="issue-main">
+                                <strong>{issue.title}</strong>
+                                <span>{issue.id} · {issue.department}</span>
+                              </div>
+                              <div className="issue-trailing">
+                                <PriorityBadge priority={issue.priority} />
+                                <span className="issue-age">
+                                  <Clock3 size={12} /> {issue.age}
+                                </span>
+                              </div>
+                              <ChevronRight size={16} />
+                            </button>
+                          ))}
+                        {issues.filter((issue) => issue.status !== "Resolved").length === 0 && (
+                          <p>No unresolved issues in the current records.</p>
+                        )}
                       </div>
-                      <button className="panel-footer-button" onClick={() => setActiveNav("All issues")}>See all operational issues <ArrowRight size={15} /></button>
+              
+                      <button className="panel-footer-button" onClick={() => setActiveNav("All issues")}>
+                        Open issue management <ArrowRight size={15} />
+                      </button>
                     </section>
-
+              
                     <section className="panel departments-panel">
                       <div className="panel-header">
                         <div>
-                          <h2>Department workload</h2>
+                          <h2>Issue distribution</h2>
                           <p>Unresolved issues by department</p>
                         </div>
-                        <button className="icon-button small-icon" aria-label="View departments" onClick={() => setActiveNav("Departments")}><MoreHorizontal size={19} /></button>
                       </div>
+              
                       <div className="department-list">
-                        {[
-                          { name: "Discharge Desk", color: "blue" },
-                          { name: "Bed Management", color: "purple" },
-                          { name: "Diagnostics", color: "teal" },
-                          { name: "Referral Desk", color: "amber" },
-                          { name: "Ward Administration", color: "slate" }
-                        ].map((department) => {
-                          const count = issues.filter((issue) => issue.department === department.name && issue.status !== "Resolved").length;
-                          const total = Math.max(1, issues.filter((issue) => issue.status !== "Resolved").length);
-                          return (
-                            <button className="department-row" key={department.name} onClick={() => {
-                              setSearchQuery(department.name);
-                              setActiveNav("All issues");
-                            }}>
-                              <span className={`department-dot dot-${department.color}`} />
-                              <span className="department-name">{department.name}</span>
-                              <div className="workload-track"><div className={`workload-fill fill-${department.color}`} style={{ width: `${(count / total) * 100}%` }} /></div>
-                              <strong>{count}</strong>
-                            </button>
-                          );
-                        })}
+                        {Array.from(new Set(issues.map((issue) => issue.department))).map(
+                          (department, index) => {
+                            const count = issues.filter(
+                              (issue) =>
+                                issue.department === department &&
+                                issue.status !== "Resolved"
+                            ).length;
+                            const totalOpen = Math.max(1, openCount);
+                            const colors = ["blue", "purple", "teal", "amber", "slate"];
+              
+                            return (
+                              <button
+                                className="department-row"
+                                key={department}
+                                onClick={() => {
+                                  setSearchQuery(department);
+                                  setActiveNav("All issues");
+                                }}
+                              >
+                                <span className={`department-dot dot-${colors[index % colors.length]}`} />
+                                <span className="department-name">{department}</span>
+                                <div className="workload-track">
+                                  <div
+                                    className={`workload-fill fill-${colors[index % colors.length]}`}
+                                    style={{ width: `${(count / totalOpen) * 100}%` }}
+                                  />
+                                </div>
+                                <strong>{count}</strong>
+                              </button>
+                            );
+                          }
+                        )}
                       </div>
-                      <button className="panel-footer-button" onClick={() => setActiveNav("Departments")}>Manage departments <ArrowRight size={15} /></button>
+              
+                      <button className="panel-footer-button" onClick={() => setActiveNav("Departments")}>
+                        View departments <ArrowRight size={15} />
+                      </button>
                     </section>
                   </div>
-
+              
                   <div className="lower-grid">
-                    <section className="panel agents-panel">
+                    <section className="panel">
                       <div className="panel-header">
                         <div>
-                          <h2>Agent activity</h2>
-                          <p>Coordination pipeline preview</p>
-                        </div>
-                        <span className="demo-tag"><span className="system-status-dot" /> DEMO</span>
-                      </div>
-                      <div className="agent-activity-list">
-                        <div className="agent-activity-row">
-                          <div className="activity-icon activity-intake"><FileText size={17} /></div>
-                          <div className="activity-description"><strong>Intake Agent</strong><span>Sample records loaded</span></div>
-                          <span className="activity-time">Ready</span>
-                        </div>
-                        <div className="agent-activity-row">
-                          <div className="activity-icon activity-detection"><AlertTriangle size={17} /></div>
-                          <div className="activity-description"><strong>Bottleneck Detection</strong><span>Example issues available</span></div>
-                          <span className="activity-time">Demo</span>
-                        </div>
-                        <div className="agent-activity-row">
-                          <div className="activity-icon activity-coordinator"><Workflow size={17} /></div>
-                          <div className="activity-description"><strong>Workflow Coordinator</strong><span>Rules engine planned</span></div>
-                          <span className="activity-time">Planned</span>
+                          <h2>Operational status</h2>
+                          <p>Current record distribution</p>
                         </div>
                       </div>
-                      <button className="panel-footer-button" onClick={() => setActiveNav("Agent workflow")}>Explore all five agents <ArrowRight size={15} /></button>
+              
+                      {[
+                        { label: "Open", count: openCount, color: "#D97706" },
+                        {
+                          label: "In review",
+                          count: issues.filter((issue) => issue.status === "In review").length,
+                          color: "#7C3AED"
+                        },
+                        { label: "Resolved", count: resolvedCount, color: "#0D9488" }
+                      ].map((item) => (
+                        <div key={item.label} style={{ marginBottom: 18 }}>
+                          <div style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            marginBottom: 7
+                          }}>
+                            <span>{item.label}</span>
+                            <strong>{item.count}</strong>
+                          </div>
+                          <div className="workload-track" style={{ height: 9 }}>
+                            <div
+                              style={{
+                                height: "100%",
+                                borderRadius: 8,
+                                background: item.color,
+                                width: `${issues.length ? (item.count / issues.length) * 100 : 0}%`
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
                     </section>
-
-                    <section className="panel audit-preview">
+              
+                    <section className="panel">
                       <div className="panel-header">
                         <div>
-                          <h2>Audit & oversight</h2>
-                          <p>Human-in-the-loop workflow</p>
+                          <h2>Five-agent workflow</h2>
+                          <p>Analysis pipeline</p>
                         </div>
-                        <div className="audit-shield"><ShieldCheck size={20} /></div>
+                        <div className="audit-shield"><Workflow size={20} /></div>
                       </div>
-                      <div className="audit-highlight">
-                        <div className="audit-highlight-icon"><ShieldCheck size={22} /></div>
-                        <div><strong>Human approval comes first</strong><p>AI recommendations will be reviewed before consequential actions.</p></div>
-                      </div>
-                      <div className="audit-stat-row">
-                        <div><span>Pending review</span><strong>{reviewCount.toString().padStart(2, "0")}</strong></div>
-                        <div><span>Resolved in session</span><strong>{resolvedCount.toString().padStart(2, "0")}</strong></div>
-                      </div>
-                      <button className="panel-footer-button" onClick={() => setActiveNav("Reports & audit")}>Explore audit trail <ArrowRight size={15} /></button>
+              
+                      {[
+                        "01 · Intake Agent",
+                        "02 · Bottleneck Detection",
+                        "03 · Workflow Coordinator",
+                        "04 · Communication Agent",
+                        "05 · Audit Agent"
+                      ].map((agent) => (
+                        <div
+                          key={agent}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            padding: "10px 0",
+                            borderBottom: "1px solid var(--border)"
+                          }}
+                        >
+                          <CheckCircle2 size={17} color="#0D9488" />
+                          <span>{agent}</span>
+                        </div>
+                      ))}
+              
+                      <button
+                        className="panel-footer-button"
+                        onClick={() => setActiveNav("Agent workflow")}
+                      >
+                        View workflow results <ArrowRight size={15} />
+                      </button>
                     </section>
                   </div>
-                </>
+                </div>
               )}
+
 
               {activeNav === "All issues" && (
                 <section className="panel all-issues-panel">
