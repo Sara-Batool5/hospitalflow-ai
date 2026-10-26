@@ -3394,3 +3394,138 @@ input:focus:not(:focus-visible) {
     font-size: 24px;
   }
 }
+
+
+/* =========================================
+   COLLAPSIBLE DASHBOARD SIDEBAR
+========================================= */
+
+.sidebar {
+  position: relative;
+  transition: width 220ms ease, flex-basis 220ms ease;
+}
+
+.sidebar-collapse-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin: 10px 12px 14px auto;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+
+.sidebar-collapse-toggle:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.sidebar-collapsed {
+  width: 82px;
+  flex-basis: 82px;
+  min-width: 82px;
+}
+
+.sidebar-collapsed .sidebar-collapse-toggle {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.sidebar-collapsed .brand {
+  justify-content: center;
+  padding-right: 8px;
+  padding-left: 8px;
+}
+
+.sidebar-collapsed .brand-name,
+.sidebar-collapsed .brand-caption,
+.sidebar-collapsed .workspace-copy,
+.sidebar-collapsed .muted-label,
+.sidebar-collapsed .nav-label,
+.sidebar-collapsed .nav-count,
+.sidebar-collapsed .agent-status-top,
+.sidebar-collapsed .agent-progress-track,
+.sidebar-collapsed .agent-progress-caption,
+.sidebar-collapsed .user-info {
+  display: none;
+}
+
+.sidebar-collapsed .workspace-switcher,
+.sidebar-collapsed .sidebar-user {
+  justify-content: center;
+  padding-right: 6px;
+  padding-left: 6px;
+}
+
+.sidebar-collapsed .sidebar-nav {
+  padding-right: 10px;
+  padding-left: 10px;
+}
+
+.sidebar-collapsed .nav-group {
+  margin-top: 12px;
+}
+
+.sidebar-collapsed .nav-item {
+  justify-content: center;
+  padding-right: 0;
+  padding-left: 0;
+  position: relative;
+}
+
+.sidebar-collapsed .nav-item > span:not(.nav-indicator) {
+  display: none;
+}
+
+.sidebar-collapsed .sidebar-settings {
+  justify-content: center;
+}
+
+.sidebar-collapsed .agent-status-card {
+  padding: 12px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.sidebar-collapsed .agent-status-card > * {
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transition: transform 220ms ease, width 220ms ease;
+  }
+
+  .sidebar-collapsed {
+    width: 260px;
+    flex-basis: 260px;
+    min-width: 260px;
+  }
+
+  .sidebar-collapsed .brand-name,
+  .sidebar-collapsed .brand-caption,
+  .sidebar-collapsed .workspace-copy,
+  .sidebar-collapsed .muted-label,
+  .sidebar-collapsed .nav-label,
+  .sidebar-collapsed .nav-count,
+  .sidebar-collapsed .agent-status-top,
+  .sidebar-collapsed .agent-progress-track,
+  .sidebar-collapsed .agent-progress-caption,
+  .sidebar-collapsed .user-info {
+    display: initial;
+  }
+
+  .sidebar-collapsed .nav-item {
+    justify-content: flex-start;
+    padding: 10px 12px;
+  }
+
+  .sidebar-collapsed .nav-item > span:not(.nav-indicator) {
+    display: initial;
+  }
+}
