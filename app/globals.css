@@ -399,12 +399,26 @@ input:focus:not(:focus-visible) {
 }
 
 .main-area {
+  box-sizing: border-box;
   width: calc(100% - 254px);
   min-width: 0;
   min-height: 100vh;
   margin-left: 254px;
+  transition: width 220ms ease, margin-left 220ms ease;
 }
 
+.app-shell.sidebar-is-collapsed .main-area {
+  width: calc(100% - 82px);
+  margin-left: 82px;
+}
+
+@media (max-width: 768px) {
+  .main-area,
+  .app-shell.sidebar-is-collapsed .main-area {
+    width: 100%;
+    margin-left: 0;
+  }
+}
 .topbar {
   position: sticky;
   z-index: 20;
@@ -3658,5 +3672,95 @@ input:focus:not(:focus-visible) {
     justify-content: flex-start;
     padding-left: 12px;
     padding-right: 12px;
+  }
+}
+
+
+/* Keep the collapsed sidebar compact and readable */
+.sidebar,
+.sidebar * {
+  box-sizing: border-box;
+}
+
+.sidebar {
+  transition: width 220ms ease;
+}
+
+.sidebar-collapsed {
+  width: 82px;
+  min-width: 82px;
+  flex-basis: 82px;
+  padding-left: 10px;
+  padding-right: 10px;
+  overflow-x: hidden;
+}
+
+/* Hide text-heavy elements that do not fit in icon mode */
+.sidebar-collapsed .brand-name,
+.sidebar-collapsed .brand-caption,
+.sidebar-collapsed .workspace-copy,
+.sidebar-collapsed .muted-label,
+.sidebar-collapsed .nav-label,
+.sidebar-collapsed .nav-count,
+.sidebar-collapsed .agent-status-card,
+.sidebar-collapsed .agent-status-top,
+.sidebar-collapsed .agent-progress-track,
+.sidebar-collapsed .agent-progress-caption,
+.sidebar-collapsed .user-info {
+  display: none !important;
+}
+
+.sidebar-collapsed .sidebar-collapse-toggle {
+  flex-shrink: 0;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sidebar-collapsed .sidebar-nav {
+  min-width: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sidebar-collapsed .nav-group {
+  min-width: 0;
+}
+
+.sidebar-collapsed .nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  width: 100%;
+  gap: 0;
+  padding-left: 0;
+  padding-right: 0;
+  overflow: hidden;
+}
+
+.sidebar-collapsed .nav-label,
+.sidebar-collapsed .nav-count {
+  display: none !important;
+}
+
+.sidebar-collapsed .workspace-switcher,
+.sidebar-collapsed .sidebar-user {
+  min-width: 0;
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+@media (max-width: 768px) {
+  .sidebar-collapsed {
+    width: 254px;
+    min-width: 254px;
+    flex-basis: 254px;
+    padding-left: 17px;
+    padding-right: 17px;
+  }
+
+  .sidebar-collapsed .agent-status-card {
+    display: block;
   }
 }
