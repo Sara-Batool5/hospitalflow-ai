@@ -25,6 +25,8 @@ import {
   Menu,
   MessageSquareText,
   MoreHorizontal,
+  PanelLeftClose,
+  PanelLeftOpen,
   RefreshCw,
   Search,
   Settings2,
@@ -140,6 +142,7 @@ function IssueIcon({ type }: { type: Issue["icon"] }) {
 
 export default function Home() {
   const [activeNav, setActiveNav] = useState("Dashboard");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("All priorities");
   const [statusFilter, setStatusFilter] = useState("All statuses");
@@ -733,7 +736,24 @@ export default function Home() {
         />
       )}
 
-      <aside className={`sidebar ${mobileMenuOpen ? "sidebar-open" : ""}`}>
+      <aside
+        className={`sidebar ${mobileMenuOpen ? "sidebar-open" : ""} ${
+          sidebarCollapsed ? "sidebar-collapsed" : ""
+        }`}
+      >
+        <button
+          type="button"
+          className="sidebar-collapse-toggle"
+          onClick={() => setSidebarCollapsed((current) => !current)}
+          aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {sidebarCollapsed ? (
+            <PanelLeftOpen size={18} />
+          ) : (
+            <PanelLeftClose size={18} />
+          )}
+        </button>
         <div className="brand">
           <div className="brand-mark">
             <HeartPulse size={25} strokeWidth={2.2} />
