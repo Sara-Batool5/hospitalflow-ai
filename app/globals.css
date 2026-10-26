@@ -3529,3 +3529,134 @@ input:focus:not(:focus-visible) {
     display: initial;
   }
 }
+
+
+/* =========================================
+   HOSPITALFLOW AI — DASHBOARD LAYOUT FIX
+========================================= */
+
+/* Let the dashboard use the available width */
+.dashboard-layout,
+.app-layout,
+.main-layout {
+  min-width: 0;
+}
+
+.main-content,
+.dashboard-main,
+.main-panel {
+  min-width: 0;
+  max-width: none;
+}
+
+/* Remove unnecessary centering constraints from dashboard content */
+.dashboard-content,
+.dashboard-container,
+.page-content {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Allow dashboard grids to shrink properly */
+.dashboard-grid,
+.dashboard-cards,
+.dashboard-panels {
+  min-width: 0;
+  width: 100%;
+}
+
+.dashboard-grid > *,
+.dashboard-cards > *,
+.dashboard-panels > * {
+  min-width: 0;
+}
+
+/* Keep sidebar elements within their available width */
+.sidebar {
+  flex-shrink: 0;
+  overflow-x: hidden;
+}
+
+.sidebar-collapsed {
+  width: 76px;
+  min-width: 76px;
+  flex-basis: 76px;
+  overflow-x: hidden;
+}
+
+.sidebar-collapsed .brand-name,
+.sidebar-collapsed .brand-caption,
+.sidebar-collapsed .workspace-copy,
+.sidebar-collapsed .muted-label,
+.sidebar-collapsed .nav-label,
+.sidebar-collapsed .nav-count,
+.sidebar-collapsed .user-info,
+.sidebar-collapsed .agent-status-top,
+.sidebar-collapsed .agent-progress-track,
+.sidebar-collapsed .agent-progress-caption {
+  display: none !important;
+}
+
+/* Center icons instead of squeezing text into the narrow sidebar */
+.sidebar-collapsed .brand,
+.sidebar-collapsed .workspace-switcher,
+.sidebar-collapsed .sidebar-user,
+.sidebar-collapsed .nav-item,
+.sidebar-collapsed .sidebar-settings,
+.sidebar-collapsed .agent-status-card {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+}
+
+.sidebar-collapsed .brand,
+.sidebar-collapsed .workspace-switcher,
+.sidebar-collapsed .sidebar-user,
+.sidebar-collapsed .nav-item,
+.sidebar-collapsed .sidebar-settings {
+  justify-content: center;
+}
+
+.sidebar-collapsed .nav-item {
+  gap: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sidebar-collapsed .nav-item > span:not(.nav-indicator) {
+  display: none !important;
+}
+
+.sidebar-collapsed .agent-status-card {
+  overflow: hidden;
+}
+
+/* Smaller screens */
+@media (max-width: 768px) {
+  .sidebar-collapsed {
+    width: 260px;
+    min-width: 260px;
+    flex-basis: 260px;
+  }
+
+  .sidebar-collapsed .brand-name,
+  .sidebar-collapsed .brand-caption,
+  .sidebar-collapsed .workspace-copy,
+  .sidebar-collapsed .muted-label,
+  .sidebar-collapsed .nav-label,
+  .sidebar-collapsed .nav-count,
+  .sidebar-collapsed .user-info,
+  .sidebar-collapsed .agent-status-top,
+  .sidebar-collapsed .agent-progress-track,
+  .sidebar-collapsed .agent-progress-caption {
+    display: initial !important;
+  }
+
+  .sidebar-collapsed .nav-item {
+    justify-content: flex-start;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
