@@ -3415,7 +3415,7 @@ input:focus:not(:focus-visible) {
 ========================================= */
 
 .sidebar {
-  position: relative;
+  position: fixed;
   transition: width 220ms ease, flex-basis 220ms ease;
 }
 
