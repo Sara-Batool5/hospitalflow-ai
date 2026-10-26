@@ -727,7 +727,11 @@ export default function Home() {
 
   
   return (
-    <main className="app-shell">
+    <main
+      className={`app-shell ${
+        sidebarCollapsed ? "sidebar-is-collapsed" : ""
+      }`}
+    >
       {mobileMenuOpen && (
         <button
           className="mobile-overlay"
