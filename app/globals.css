@@ -1932,10 +1932,10 @@ input:focus:not(:focus-visible) {
     width: 230px;
   }
 
-  .main-area {
+  /* .main-area {
     width: calc(100% - 230px);
     margin-left: 230px;
-  }
+  } */
 
   .page-content {
     padding-right: 23px;
@@ -2014,10 +2014,10 @@ input:focus:not(:focus-visible) {
     box-shadow: 10px 0 35px rgba(10, 30, 45, 0.16);
   }
 
-  .main-area {
+  /* .main-area {
     width: 100%;
     margin-left: 0;
-  }
+  } */
 
   .topbar {
     height: 60px;
