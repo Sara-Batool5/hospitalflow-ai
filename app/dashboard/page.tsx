@@ -732,6 +732,19 @@ export default function Home() {
         sidebarCollapsed ? "sidebar-is-collapsed" : ""
       }`}
     >
+      <div className="app-brand-fixed">
+        <div className="brand-mark">
+          <HeartPulse size={25} strokeWidth={2.2} />
+        </div>
+        <div>
+          <div className="brand-name">
+            HospitalFlow<span> AI</span>
+          </div>
+          <div className="brand-caption">
+            OPERATIONS INTELLIGENCE
+          </div>
+        </div>
+      </div>
       {mobileMenuOpen && (
         <button
           className="mobile-overlay"
@@ -758,22 +771,6 @@ export default function Home() {
             <PanelLeftClose size={18} />
           )}
         </button>
-        <div className="brand">
-          <div className="brand-mark">
-            <HeartPulse size={25} strokeWidth={2.2} />
-          </div>
-          <div>
-            <div className="brand-name">HospitalFlow<span> AI</span></div>
-            <div className="brand-caption">OPERATIONS INTELLIGENCE</div>
-          </div>
-          <button
-            className="icon-button mobile-close"
-            aria-label="Close navigation"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <X size={18} />
-          </button>
-        </div>
 
         <div className="workspace-switcher">
           <div className="workspace-avatar"><Stethoscope size={18} /></div>
