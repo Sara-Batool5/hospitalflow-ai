@@ -793,6 +793,8 @@ export default function Home() {
                 return (
                   <button
                     key={item.label}
+                    title={item.label}
+                    aria-label={item.label}
                     className={`nav-item ${activeNav === item.label ? "nav-active" : ""}`}
                     onClick={() => {
                       setActiveNav(item.label);
@@ -802,7 +804,6 @@ export default function Home() {
                   >
                     <Icon size={18} strokeWidth={1.8} />
                     <span>{item.label}</span>
-                    <span className="nav-tooltip">{item.label}</span>
                     {"count" in item && item.count && (
                       <span className="nav-count">
                         {item.label === "All issues"
@@ -840,6 +841,8 @@ export default function Home() {
         </div>
 
         <button
+          title="Settings"
+          aria-label="Settings"
           className={`nav-item sidebar-settings ${activeNav === "Settings" ? "nav-active" : ""}`}
           onClick={() => {
             setActiveNav("Settings");
