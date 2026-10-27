@@ -3769,10 +3769,7 @@ input:focus:not(:focus-visible) {
    HOSPITALFLOW COLLAPSED SIDEBAR TOOLTIPS
 ========================================= */
 
-.sidebar.sidebar-collapsed .sidebar-nav {
-  overflow: visible !important;
-}
-
+.sidebar.sidebar-collapsed .sidebar-nav,
 .sidebar.sidebar-collapsed .nav-group {
   overflow: visible !important;
 }
@@ -3784,10 +3781,10 @@ input:focus:not(:focus-visible) {
 
 .sidebar.sidebar-collapsed .nav-item > .nav-tooltip {
   display: block !important;
-  position: fixed;
-  left: 94px;
-  top: 0;
-  transform: translateY(-50%);
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
   width: max-content;
   max-width: 220px;
   padding: 9px 13px;
@@ -3803,15 +3800,16 @@ input:focus:not(:focus-visible) {
   pointer-events: none;
   z-index: 99999;
   box-shadow: 0 5px 18px rgba(0, 0, 0, 0.2);
+  transition: opacity 150ms ease, transform 150ms ease, visibility 150ms ease;
 }
 
 .sidebar.sidebar-collapsed .nav-item:hover > .nav-tooltip,
 .sidebar.sidebar-collapsed .nav-item:focus-visible > .nav-tooltip {
   opacity: 1;
   visibility: visible;
+  transform: translateY(-50%) translateX(0);
 }
 
-/* Hide duplicate labels when navigation is expanded */
 .sidebar:not(.sidebar-collapsed) .nav-tooltip {
   display: none !important;
 }
