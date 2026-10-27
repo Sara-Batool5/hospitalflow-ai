@@ -802,6 +802,7 @@ export default function Home() {
                   >
                     <Icon size={18} strokeWidth={1.8} />
                     <span>{item.label}</span>
+                    <span className="nav-tooltip">{item.label}</span>
                     {"count" in item && item.count && (
                       <span className="nav-count">
                         {item.label === "All issues"
