@@ -3764,3 +3764,56 @@ input:focus:not(:focus-visible) {
     display: block;
   }
 }
+
+/* =========================================
+   COLLAPSED SIDEBAR NAVIGATION TOOLTIPS
+========================================= */
+
+.sidebar-collapsed .nav-item {
+  position: relative;
+  overflow: visible;
+}
+
+.sidebar-collapsed .nav-item .nav-tooltip {
+  display: block;
+  position: absolute;
+  left: calc(100% + 14px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  padding: 9px 13px;
+  border-radius: 8px;
+  background: #123b36;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 1000;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.2);
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease,
+    visibility 150ms ease;
+}
+
+.sidebar-collapsed .nav-item:hover .nav-tooltip,
+.sidebar-collapsed .nav-item:focus-visible .nav-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* Hide duplicate tooltip text when the sidebar is expanded */
+.sidebar:not(.sidebar-collapsed) .nav-tooltip {
+  display: none;
+}
+
+/* Allow tooltips to extend beyond navigation containers */
+.sidebar-collapsed,
+.sidebar-collapsed .sidebar-nav,
+.sidebar-collapsed .nav-group {
+  overflow-x: visible;
+}
