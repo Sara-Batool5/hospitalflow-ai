@@ -33,6 +33,7 @@ import {
   ShieldCheck,
   Sparkles,
   Stethoscope,
+  Upload,
   Users,
   Workflow,
   X,
@@ -110,7 +111,8 @@ const navGroups = [
     items: [
       { label: "Departments", icon: Users },
       { label: "Operations timeline", icon: Activity },
-      { label: "Reports & audit", icon: FileCheck2 }
+      { label: "Reports & audit", icon: FileCheck2 },
+      { label: "Upload CSV", icon: Upload }
     ]
   }
 ];
@@ -1110,7 +1112,7 @@ export default function Home() {
 
         <div className="page-content">
           
-          {activeNav === "Dashboard" && (
+          {activeNav === "Upload CSV" && (
             <section
               className="panel"
               style={{ padding: 24, marginBottom: 24 }}
