@@ -746,7 +746,15 @@ export default function Home() {
         .agent-status-card { background:rgba(0,37,38,.24) !important; border:1px solid rgba(67,207,190,.35) !important; }
         .sidebar-user { border-top:1px solid rgba(255,255,255,.15) !important; }
         .main-area { background:#f8fafc !important; }
-        .topbar { background:rgba(255,255,255,.96) !important; border-bottom:1px solid #e3ebef !important; box-shadow:none !important; }
+        .topbar { background:rgba(255,255,255,.96) !important; border-bottom:1px solid #e3ebef !important; box-shadow:none !important; min-height:86px; }
+        .topbar-left { min-width:0; }
+        .app-brand-fixed { display:flex; align-items:center; gap:11px; min-width:0; position:relative; z-index:2; }
+        .app-brand-fixed .brand-mark { width:52px; height:58px; border-radius:50%; display:grid; place-items:center; background:#005b58; color:#fff; flex:none; box-shadow:inset 0 0 0 3px rgba(255,255,255,.12); }
+        .app-brand-fixed .brand-copy { min-width:0; }
+        .app-brand-fixed .brand-name { color:#0a2e40 !important; font-size:23px; line-height:1.1; letter-spacing:-.55px; font-weight:780; white-space:nowrap; }
+        .app-brand-fixed .brand-name span { color:#079f91; }
+        .app-brand-fixed .brand-caption { color:#4b6c80 !important; margin-top:4px; font-size:10px; font-weight:750; letter-spacing:1.45px; white-space:nowrap; }
+        .page-breadcrumb { display:flex; align-items:center; gap:10px; min-height:38px; margin:0 0 20px; font-size:14px; }
         .breadcrumb span { color:#7894ac !important; }
         .breadcrumb strong { color:#082c3d !important; }
         .system-status { color:#173a4c !important; }
@@ -806,20 +814,16 @@ export default function Home() {
         @media(max-width:1150px) { .hf-stat-grid {gap:12px}.hf-stat-card {padding:17px 14px}.hf-main-grid {grid-template-columns:minmax(0,1.3fr) minmax(300px,1fr)}.hf-health-content {padding-left:14px;padding-right:14px}.hf-health-ring {width:118px;height:118px} }
         @media(max-width:900px) { .hf-stat-grid {grid-template-columns:repeat(2,minmax(0,1fr))}.hf-main-grid {grid-template-columns:1fr}.hf-right-stack {display:grid;grid-template-columns:1fr 1fr}.hf-health-content {flex-wrap:wrap}.hf-health-list {min-width:150px} }
         @media(max-width:620px) { .page-content {padding:16px !important}.hf-dashboard {gap:16px}.hf-welcome {padding:18px;min-height:112px;gap:12px}.hf-welcome-icon {width:46px;height:48px}.hf-welcome-copy h1 {font-size:19px}.hf-welcome-copy p {font-size:12px;line-height:1.5}.hf-welcome-art {display:none}.hf-stat-grid {gap:10px}.hf-stat-card {padding:14px 12px;min-height:140px}.hf-stat-top {font-size:11px;gap:8px}.hf-stat-icon {width:27px;height:27px}.hf-stat-number {font-size:25px}.hf-stat-bottom {font-size:10px;padding-right:0}.hf-stat-bottom svg {display:none}.hf-right-stack {display:flex}.hf-health-content {justify-content:center}.hf-health-list {min-width:150px}.hf-card-heading {padding:0 14px}.hf-table-wrap {padding:0 14px}.hf-card-bottom {padding:10px 14px;flex-wrap:wrap}.hf-health-label {display:none} }
+        @media(max-width:620px) {
+          .topbar { min-height:72px; }
+          .app-brand-fixed { gap:8px; }
+          .app-brand-fixed .brand-mark { width:40px; height:44px; }
+          .app-brand-fixed .brand-name { font-size:17px; letter-spacing:-.3px; }
+          .app-brand-fixed .brand-caption { font-size:8px; letter-spacing:1px; }
+          .topbar-actions .system-status { display:none; }
+          .page-breadcrumb { margin-bottom:16px; }
+        }
       `}</style>
-      <div className="app-brand-fixed">
-        <div className="brand-mark">
-          <HeartPulse size={25} strokeWidth={2.2} />
-        </div>
-        <div>
-          <div className="brand-name">
-            HospitalFlow<span> AI</span>
-          </div>
-          <div className="brand-caption">
-            OPERATIONS INTELLIGENCE
-          </div>
-        </div>
-      </div>
       {mobileMenuOpen && (
         <button
           className="mobile-overlay"
@@ -945,10 +949,12 @@ export default function Home() {
             >
               <Menu size={20} />
             </button>
-            <div className="breadcrumb">
-              <span>HospitalFlow</span>
-              <ChevronRight size={14} />
-              <strong>{activeNav}</strong>
+            <div className="app-brand-fixed" aria-label="HospitalFlow AI Operations Intelligence">
+              <div className="brand-mark"><HeartPulse size={27} strokeWidth={2.1} /></div>
+              <div className="brand-copy">
+                <div className="brand-name">HospitalFlow<span> AI</span></div>
+                <div className="brand-caption">OPERATIONS INTELLIGENCE</div>
+              </div>
             </div>
           </div>
 
@@ -984,6 +990,11 @@ export default function Home() {
         </header>
 
         <div className="page-content">
+          <div className="breadcrumb page-breadcrumb">
+            <span>HospitalFlow</span>
+            <ChevronRight size={14} />
+            <strong>{activeNav}</strong>
+          </div>
           {dataLoading && (
             <div className="inline-feedback">
               <RefreshCw size={17} className="spin" />
