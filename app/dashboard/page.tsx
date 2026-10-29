@@ -2901,7 +2901,7 @@ export default function Home() {
               )}
 
               
-              {isOverview && (
+              {activeNav !== "Upload CSV" && isOverview && (
                 <div className="hf-dashboard">
                   <section className="hf-welcome">
                     <div className="hf-welcome-icon"><Activity size={28} /></div>
