@@ -2891,7 +2891,9 @@ export default function Home() {
                   </button>
                 </div>
               </div>
-
+                
+          {activeNav !== "Upload CSV" && (
+            <>
               {scanMessage && (
                 <div className="inline-feedback">
                   <CheckCircle2 size={17} />
@@ -3133,6 +3135,8 @@ export default function Home() {
 
             </>
           )}
+          </>
+        )}
 
           <footer className="page-footer">
             <span><ShieldCheck size={14} /> HospitalFlow AI <span className="footer-divider">·</span> Prototype</span>
