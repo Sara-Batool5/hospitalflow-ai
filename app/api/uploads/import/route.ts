@@ -166,12 +166,17 @@ export async function POST(request: Request) {
       .select("id");
 
     if (issuesResult.error || !issuesResult.data || issuesResult.data.length !== rows.length) {
-      console.error("CSV issue insertion failed:", issuesResult.error?.message);
+      console.error("CSV issue insertion failed:", {
+        message: issuesResult.error?.message,
+        code: issuesResult.error?.code,
+        details: issuesResult.error?.details,
+        hint: issuesResult.error?.hint,
+      });
       await supabase.from("upload_batches").delete().eq("id", batchId);
       return NextResponse.json(
         {
           ok: false,
-          message: "The records could not be imported. Please check the CSV values and try again.",
+          message: `The records could not be imported: ${issuesResult.error?.message ?? "Unknown database error"}`,
         },
         { status: 500 }
       );
