@@ -1112,172 +1112,7 @@ export default function Home() {
 
         <div className="page-content">
           
-          {activeNav === "Upload CSV" && (
-            <section
-              className="panel"
-              style={{ padding: 24, marginBottom: 24 }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-                <div>
-                  <div className="eyebrow">DATA INTAKE</div>
-                  <h2 style={{ margin: "8px 0" }}>Upload your CSV</h2>
-                  <p style={{ marginTop: 0 }}>
-                    Validate operational records before importing them into the database.
-                  </p>
-                </div>
-                <span className="coming-soon">CSV IMPORT</span>
-              </div>
-        
-              <div style={{ padding: 16, border: "1px dashed var(--border-color, #64748b)", borderRadius: 12 }}>
-                <label htmlFor="hospitalflow-csv" style={{ display: "block", fontWeight: 600, marginBottom: 10 }}>
-                  Select a CSV file
-                </label>
-                <input
-                  id="hospitalflow-csv"
-                  type="file"
-                  accept=".csv,text/csv"
-                  onChange={(event) => {
-                    setCsvFile(event.target.files?.[0] ?? null);
-                    setCsvSummary(null);
-                    setCsvValidRows([]);
-                    setCsvInvalidRows([]);
-                    setCsvBatchId("");
-                    setCsvMessage("");
-                  }}
-                />
-                <p style={{ fontSize: 13, marginBottom: 0 }}>
-                  Use the CSV template and required columns supported by the validation API.
-                  Upload synthetic or non-identifiable operational data only.
-                </p>
-              </div>
-        
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16 }}>
-                <button
-                  type="button"
-                  className="primary-button"
-                  onClick={validateCsvUpload}
-                  disabled={!csvFile || csvLoading || csvImporting}
-                >
-                  {csvLoading ? "Validating…" : "Validate CSV"}
-                </button>
-        
-                <button
-                  type="button"
-                  className="secondary-button"
-                  onClick={importCsvRows}
-                  disabled={!csvSummary || csvValidRows.length === 0 || csvLoading || csvImporting}
-                >
-                  {csvImporting ? "Importing…" : `Import ${csvValidRows.length} valid record(s)`}
-                </button>
-              </div>
-        
-              {csvMessage && (
-                <div className="inline-feedback" role="status" style={{ marginTop: 16 }}>
-                  {csvMessage}
-                </div>
-              )}
-        
-              {csvSummary && (
-                <div style={{ marginTop: 20 }}>
-                  <h3>Validation summary</h3>
-                  <div className="metrics-grid">
-                    <div className="metric-card">
-                      <div className="metric-label">Total records</div>
-                      <div className="metric-value">{csvSummary.totalRecords}</div>
-                    </div>
-                    <div className="metric-card">
-                      <div className="metric-label">Valid records</div>
-                      <div className="metric-value">{csvSummary.validRecords}</div>
-                    </div>
-                    <div className="metric-card">
-                      <div className="metric-label">Invalid records</div>
-                      <div className="metric-value">{csvSummary.invalidRecords}</div>
-                    </div>
-                  </div>
-        
-                  {csvValidRows.length > 0 && (
-                    <>
-                      <h3 style={{ marginTop: 24 }}>Valid records preview</h3>
-                      <div style={{ overflowX: "auto" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                          <thead>
-                            <tr>
-                              {["reference", "title", "department", "priority", "status"].map((column) => (
-                                <th key={column} style={{ textAlign: "left", padding: 10 }}>
-                                  {column}
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {csvValidRows.slice(0, 10).map((row, index) => (
-                              <tr key={`${String(row.reference ?? "row")}-${index}`}>
-                                {["reference", "title", "department", "priority", "status"].map((column) => (
-                                  <td key={column} style={{ padding: 10, borderTop: "1px solid var(--border-color, #e5e7eb)" }}>
-                                    {String(row[column] ?? "—")}
-                                  </td>
-                                ))}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      {csvValidRows.length > 10 && (
-                        <p>Showing the first 10 of {csvValidRows.length} valid records.</p>
-                      )}
-                    </>
-                  )}
-        
-                  {csvInvalidRows.length > 0 && (
-                    <>
-                      <h3 style={{ marginTop: 24 }}>Invalid records</h3>
-                      <div style={{ overflowX: "auto" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                          <thead>
-                            <tr>
-                              <th style={{ textAlign: "left", padding: 10 }}>Row</th>
-                              <th style={{ textAlign: "left", padding: 10 }}>Reference</th>
-                              <th style={{ textAlign: "left", padding: 10 }}>Title</th>
-                              <th style={{ textAlign: "left", padding: 10 }}>Validation findings</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {csvInvalidRows.slice(0, 20).map((row, index) => (
-                              <tr key={`invalid-${index}`}>
-                                <td style={{ padding: 10 }}>{String(row.rowNumber ?? row.row ?? index + 1)}</td>
-                                <td style={{ padding: 10 }}>{String(row.reference ?? "—")}</td>
-                                <td style={{ padding: 10 }}>{String(row.title ?? "—")}</td>
-                                <td style={{ padding: 10 }}>
-                                  {Array.isArray(row.findings)
-                                    ? row.findings.join(", ")
-                                    : Array.isArray(row.errors)
-                                      ? row.errors.join(", ")
-                                      : String(row.error ?? row.message ?? "Check this row")}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </>
-                  )}
-        
-                  {csvBatchId && (
-                    <p style={{ marginTop: 16 }}>
-                      <strong>Imported batch ID:</strong> {csvBatchId}
-                    </p>
-                  )}
-        
-                  {csvBatchId && (
-                    <div className="inline-feedback" style={{ marginTop: 12 }}>
-                      The records have been imported. Batch-specific agent execution is not enabled by this interface yet; the existing Demo Run remains a separate workflow.
-                    </div>
-                  )}
-                </div>
-              )}
-            </section>
-          )}
-
+          
           <div className="breadcrumb page-breadcrumb">
             <span>HospitalFlow</span>
             <ChevronRight size={14} />
@@ -2891,9 +2726,173 @@ export default function Home() {
                   </button>
                 </div>
               </div>
+
+              {activeNav === "Upload CSV" && (
+                <section
+                  className="panel"
+                  style={{ padding: 24, marginBottom: 24 }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+                    <div>
+                      <div className="eyebrow">DATA INTAKE</div>
+                      <h2 style={{ margin: "8px 0" }}>Upload your CSV</h2>
+                      <p style={{ marginTop: 0 }}>
+                        Validate operational records before importing them into the database.
+                      </p>
+                    </div>
+                    <span className="coming-soon">CSV IMPORT</span>
+                  </div>
+            
+                  <div style={{ padding: 16, border: "1px dashed var(--border-color, #64748b)", borderRadius: 12 }}>
+                    <label htmlFor="hospitalflow-csv" style={{ display: "block", fontWeight: 600, marginBottom: 10 }}>
+                      Select a CSV file
+                    </label>
+                    <input
+                      id="hospitalflow-csv"
+                      type="file"
+                      accept=".csv,text/csv"
+                      onChange={(event) => {
+                        setCsvFile(event.target.files?.[0] ?? null);
+                        setCsvSummary(null);
+                        setCsvValidRows([]);
+                        setCsvInvalidRows([]);
+                        setCsvBatchId("");
+                        setCsvMessage("");
+                      }}
+                    />
+                    <p style={{ fontSize: 13, marginBottom: 0 }}>
+                      Use the CSV template and required columns supported by the validation API.
+                      Upload synthetic or non-identifiable operational data only.
+                    </p>
+                  </div>
+            
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16 }}>
+                    <button
+                      type="button"
+                      className="primary-button"
+                      onClick={validateCsvUpload}
+                      disabled={!csvFile || csvLoading || csvImporting}
+                    >
+                      {csvLoading ? "Validating…" : "Validate CSV"}
+                    </button>
+            
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      onClick={importCsvRows}
+                      disabled={!csvSummary || csvValidRows.length === 0 || csvLoading || csvImporting}
+                    >
+                      {csvImporting ? "Importing…" : `Import ${csvValidRows.length} valid record(s)`}
+                    </button>
+                  </div>
+            
+                  {csvMessage && (
+                    <div className="inline-feedback" role="status" style={{ marginTop: 16 }}>
+                      {csvMessage}
+                    </div>
+                  )}
+            
+                  {csvSummary && (
+                    <div style={{ marginTop: 20 }}>
+                      <h3>Validation summary</h3>
+                      <div className="metrics-grid">
+                        <div className="metric-card">
+                          <div className="metric-label">Total records</div>
+                          <div className="metric-value">{csvSummary.totalRecords}</div>
+                        </div>
+                        <div className="metric-card">
+                          <div className="metric-label">Valid records</div>
+                          <div className="metric-value">{csvSummary.validRecords}</div>
+                        </div>
+                        <div className="metric-card">
+                          <div className="metric-label">Invalid records</div>
+                          <div className="metric-value">{csvSummary.invalidRecords}</div>
+                        </div>
+                      </div>
+            
+                      {csvValidRows.length > 0 && (
+                        <>
+                          <h3 style={{ marginTop: 24 }}>Valid records preview</h3>
+                          <div style={{ overflowX: "auto" }}>
+                            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                              <thead>
+                                <tr>
+                                  {["reference", "title", "department", "priority", "status"].map((column) => (
+                                    <th key={column} style={{ textAlign: "left", padding: 10 }}>
+                                      {column}
+                                    </th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {csvValidRows.slice(0, 10).map((row, index) => (
+                                  <tr key={`${String(row.reference ?? "row")}-${index}`}>
+                                    {["reference", "title", "department", "priority", "status"].map((column) => (
+                                      <td key={column} style={{ padding: 10, borderTop: "1px solid var(--border-color, #e5e7eb)" }}>
+                                        {String(row[column] ?? "—")}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                          {csvValidRows.length > 10 && (
+                            <p>Showing the first 10 of {csvValidRows.length} valid records.</p>
+                          )}
+                        </>
+                      )}
+            
+                      {csvInvalidRows.length > 0 && (
+                        <>
+                          <h3 style={{ marginTop: 24 }}>Invalid records</h3>
+                          <div style={{ overflowX: "auto" }}>
+                            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                              <thead>
+                                <tr>
+                                  <th style={{ textAlign: "left", padding: 10 }}>Row</th>
+                                  <th style={{ textAlign: "left", padding: 10 }}>Reference</th>
+                                  <th style={{ textAlign: "left", padding: 10 }}>Title</th>
+                                  <th style={{ textAlign: "left", padding: 10 }}>Validation findings</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {csvInvalidRows.slice(0, 20).map((row, index) => (
+                                  <tr key={`invalid-${index}`}>
+                                    <td style={{ padding: 10 }}>{String(row.rowNumber ?? row.row ?? index + 1)}</td>
+                                    <td style={{ padding: 10 }}>{String(row.reference ?? "—")}</td>
+                                    <td style={{ padding: 10 }}>{String(row.title ?? "—")}</td>
+                                    <td style={{ padding: 10 }}>
+                                      {Array.isArray(row.findings)
+                                        ? row.findings.join(", ")
+                                        : Array.isArray(row.errors)
+                                          ? row.errors.join(", ")
+                                          : String(row.error ?? row.message ?? "Check this row")}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </>
+                      )}
+            
+                      {csvBatchId && (
+                        <p style={{ marginTop: 16 }}>
+                          <strong>Imported batch ID:</strong> {csvBatchId}
+                        </p>
+                      )}
+            
+                      {csvBatchId && (
+                        <div className="inline-feedback" style={{ marginTop: 12 }}>
+                          The records have been imported. Batch-specific agent execution is not enabled by this interface yet; the existing Demo Run remains a separate workflow.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </section>
+              )}
                 
-          {activeNav !== "Upload CSV" && (
-            <>
               {scanMessage && (
                 <div className="inline-feedback">
                   <CheckCircle2 size={17} />
