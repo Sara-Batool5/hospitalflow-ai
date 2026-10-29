@@ -3175,7 +3175,15 @@ export default function Home() {
                     </div>
                   )}
               
-                  {!approvalsLoading && !approvalsError && approvals.length === 0 && (
+                  {!approvalsLoading &&
+                    !approvalsError &&
+                    !approvals.some((approval) =>
+                      [
+                        "pending",
+                        "awaiting_approval",
+                        "requires_human_approval",
+                      ].includes(approval.status)
+                    ) && (
                     <div className="empty-state">
                       <ShieldCheck size={25} />
                       <h3>No approval records found</h3>
@@ -3184,7 +3192,15 @@ export default function Home() {
                   )}
               
                   <div className="workflow-list">
-                    {approvals.map((approval) => (
+                    {approvals
+                      .filter((approval) =>
+                        [
+                          "pending",
+                          "awaiting_approval",
+                          "requires_human_approval",
+                        ].includes(approval.status)
+                      )
+                      .map((approval) => (
                       <div className="workflow-row" key={approval.id}>
                         <div className="workflow-icon">
                           <ShieldCheck size={20} />
