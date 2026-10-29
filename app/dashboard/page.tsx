@@ -3134,8 +3134,6 @@ export default function Home() {
 
             </>
           )}
-          </>
-        )}
 
           <footer className="page-footer">
             <span><ShieldCheck size={14} /> HospitalFlow AI <span className="footer-divider">·</span> Prototype</span>
