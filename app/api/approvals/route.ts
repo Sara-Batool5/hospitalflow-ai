@@ -31,6 +31,11 @@ export async function GET() {
         )
       `)
       .eq("requires_human_approval", true)
+      .in("status", [
+        "pending",
+        "awaiting_approval",
+        "requires_human_approval",
+      ])
       .order("created_at", { ascending: false });
 
     if (error) {
