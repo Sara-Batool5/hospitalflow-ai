@@ -103,7 +103,7 @@ const navGroups = [
       { label: "Dashboard", icon: LayoutDashboard },
       { label: "All issues", icon: ListTodo, count: "05" },
       { label: "Agent workflow", icon: Workflow },
-      { label: "Approvals", icon: ShieldCheck, count: String(approvals.length).padStart(2, "0") }
+      {{ label: "Approvals", icon: ShieldCheck, count: "03" }
     ]
   },
   {
