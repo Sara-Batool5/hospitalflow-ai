@@ -103,7 +103,7 @@ const navGroups = [
       { label: "Dashboard", icon: LayoutDashboard },
       { label: "All issues", icon: ListTodo, count: "05" },
       { label: "Agent workflow", icon: Workflow },
-      { label: "Approvals", icon: ShieldCheck, count: "03" }
+      { label: "Approvals", icon: ShieldCheck, count: String(approvals.length).padStart(2, "0") }
     ]
   },
   {
@@ -2954,12 +2954,113 @@ export default function Home() {
                         <div className="hf-card-heading"><div className="hf-heading-icon"><Activity size={19}/></div><h2>System health</h2><span className="hf-health-label"><span/> Operational</span></div>
                         <div className="hf-health-content"><div className="hf-health-ring"><div><strong>94%</strong><span>Operational</span></div></div><div className="hf-health-list"><div><i/> <span>Infrastructure</span><strong>Healthy</strong></div><div><i/> <span>Applications</span><strong>Healthy</strong></div><div><i/> <span>Data pipeline</span><strong>{dataError ? "Attention" : "Healthy"}</strong></div><div><i/> <span>Security</span><strong>Healthy</strong></div></div></div>
                       </section>
+                      
                       <section className="hf-card hf-activity-card">
-                        <div className="hf-card-heading"><div className="hf-heading-icon"><Clock3 size={19}/></div><h2>Recent activity</h2><button className="hf-icon-link" title="Refresh activity" onClick={() => void loadAuditEvents()}><RefreshCw size={15}/></button></div>
-                        <div className="hf-activity-list">{auditEvents.slice(0,4).map((event,index) => { const issue = issues.find(i => i.id === event.issue_id); const label = issue?.title || (typeof event.details?.synthetic_reference === "string" ? event.details.synthetic_reference : event.event_type.replaceAll("_", " ")); const positive = /resolved|approved|completed/i.test(event.event_type); return <div className="hf-activity-row" key={event.id}><span className={`hf-activity-icon ${positive ? "positive" : index % 2 ? "blue" : "alert"}`}>{positive ? <Check size={14}/> : /report|audit/i.test(event.event_type) ? <FileText size={14}/> : <AlertTriangle size={14}/>}</span><span className="hf-activity-text">{label}</span><time>{new Date(event.created_at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</time></div>; })}
-                          {auditEvents.length === 0 && <div className="hf-activity-empty">{auditLoading ? "Loading recent activity…" : "No activity has been recorded yet."}</div>}</div>
-                        <div className="hf-card-bottom"><button className="hf-link" onClick={() => setActiveNav("Operations timeline")}>View all activity <ArrowRight size={15}/></button></div>
+                        <div className="hf-card-heading">
+                          <div className="hf-heading-icon">
+                            <Clock3 size={19} />
+                          </div>
+                          <h2>Recent activity</h2>
+                          <button
+                            className="hf-icon-link"
+                            title="Refresh activity"
+                            onClick={() => void loadAuditEvents()}
+                          >
+                            <RefreshCw size={15} />
+                          </button>
+                        </div>
+                      
+                        <div className="hf-activity-list">
+                          {auditEvents.slice(0, 4).map((event, index) => {
+                            const issue = issues.find((i) => i.id === event.issue_id);
+                            const details = event.details ?? {};
+                            const reference =
+                              typeof details.synthetic_reference === "string"
+                                ? details.synthetic_reference
+                                : null;
+                      
+                            const rawStatus =
+                              typeof details.new_status === "string"
+                                ? details.new_status
+                                : typeof details.status === "string"
+                                  ? details.status
+                                  : null;
+                      
+                            const statusLabel = rawStatus
+                              ? rawStatus.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())
+                              : null;
+                      
+                            const eventLabel = event.event_type
+                              .replaceAll("_", " ")
+                              .replace(/\b\w/g, (c) => c.toUpperCase());
+                      
+                            const label = issue?.title || reference || eventLabel;
+                            const isResolved = /resolved|approved|completed/i.test(
+                              `${event.event_type} ${rawStatus ?? ""}`
+                            );
+                            const isRejected = /reject/i.test(
+                              `${event.event_type} ${rawStatus ?? ""}`
+                            );
+                      
+                            return (
+                              <div className="hf-activity-row" key={event.id}>
+                                <span
+                                  className={`hf-activity-icon ${
+                                    isResolved
+                                      ? "positive"
+                                      : isRejected
+                                        ? "alert"
+                                        : index % 2
+                                          ? "blue"
+                                          : "alert"
+                                  }`}
+                                >
+                                  {isResolved ? (
+                                    <Check size={14} />
+                                  ) : /report|audit/i.test(event.event_type) ? (
+                                    <FileText size={14} />
+                                  ) : (
+                                    <AlertTriangle size={14} />
+                                  )}
+                                </span>
+                      
+                                <span className="hf-activity-text">
+                                  <span>{label}</span>
+                                  <span>
+                                    {eventLabel}
+                                    {statusLabel ? ` · ${statusLabel}` : ""}
+                                  </span>
+                                </span>
+                      
+                                <time>
+                                  {new Date(event.created_at).toLocaleTimeString([], {
+                                    hour: "numeric",
+                                    minute: "2-digit",
+                                  })}
+                                </time>
+                              </div>
+                            );
+                          })}
+                      
+                          {auditEvents.length === 0 && (
+                            <div className="hf-activity-empty">
+                              {auditLoading
+                                ? "Loading recent activity…"
+                                : "No activity has been recorded yet."}
+                            </div>
+                          )}
+                        </div>
+                      
+                        <div className="hf-card-bottom">
+                          <button
+                            className="hf-link"
+                            onClick={() => setActiveNav("Operations timeline")}
+                          >
+                            View all activity <ArrowRight size={15} />
+                          </button>
+                        </div>
                       </section>
+
                     </div>
                   </section>
                 </div>
