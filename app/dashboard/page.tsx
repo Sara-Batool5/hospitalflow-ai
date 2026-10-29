@@ -1005,7 +1005,17 @@ export default function Home() {
                       <span className="nav-count">
                         {item.label === "All issues"
                           ? String(issues.length).padStart(2, "0")
-                          : item.count}
+                          : item.label === "Approvals"
+                            ? String(
+                                approvals.filter((approval) =>
+                                  [
+                                    "pending",
+                                    "awaiting_approval",
+                                    "requires_human_approval",
+                                  ].includes(approval.status)
+                                ).length
+                              ).padStart(2, "0")
+                            : item.count}
                       </span>
                     )}
                     {activeNav === item.label && (
