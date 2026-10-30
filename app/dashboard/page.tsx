@@ -552,6 +552,41 @@ export default function Home() {
     }
   }
 
+  async function requestApproval(issueId: string): Promise<boolean> {
+    try {
+      setScanMessage(`Requesting approval for ${issueId}…`);
+      setDataError("");
+
+      const response = await fetch("/api/approvals/request", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ issueId }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        throw new Error(
+          result.message || "Could not create the approval request."
+        );
+      }
+
+      await Promise.all([loadApprovals(), loadAuditEvents()]);
+      setScanMessage(result.message || "Approval request created.");
+      return true;
+    } catch (error) {
+      setDataError(
+        error instanceof Error
+          ? error.message
+          : "Could not create the approval request."
+      );
+      setScanMessage("");
+      return false;
+    }
+  }
+
   useEffect(() => {
     void loadIssues();
     void loadAuditEvents();
@@ -3145,7 +3180,7 @@ export default function Home() {
                       <h2>Items awaiting human approval</h2>
                       <p>
                         Approval actions retrieved from Supabase.
-                        {" "}{approvals.length} record{approvals.length === 1 ? "" : "s"} found.
+                        {" "}{approvals.filter((a) => ["pending", "awaiting_approval", "requires_human_approval"].includes(a.status)).length} pending request(s).
                       </p>
                     </div>
                     <button
@@ -3187,7 +3222,7 @@ export default function Home() {
                     <div className="empty-state">
                       <ShieldCheck size={25} />
                       <h3>No approval records found</h3>
-                      <p>Refresh to check for pending workflow actions.</p>
+                      <p>Open an issue and choose "Send for approval" to create a request.</p>
                     </div>
                   )}
               
@@ -3306,6 +3341,16 @@ export default function Home() {
               )}
               {selectedIssue.status === "Open" && (
                 <button className="secondary-button" onClick={async () => {await updateIssueStatus(selectedIssue.id, "In review");}}><ShieldCheck size={16} /> Review</button>
+              )}
+              {selectedIssue.status !== "Resolved" && (
+                <button className="secondary-button" onClick={async () => {
+                  const success = await requestApproval(selectedIssue.id);
+
+                  if (success) {
+                    setSelectedIssue(null);
+                    setActiveNav("Approvals");
+                  }
+                }}><ShieldCheck size={16} /> Send for approval</button>
               )}
             </div>
           </section>

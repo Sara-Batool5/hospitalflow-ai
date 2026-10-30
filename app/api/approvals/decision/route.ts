@@ -21,18 +21,10 @@ export async function PATCH(request: Request) {
 
     const supabase = getSupabaseAdmin();
 
-    // Only allow decisions on the two seeded synthetic demo actions.
-    const allowedDemoIds = [
+    const seededDemoIds = [
       "30000000-0000-4000-8000-000000000001",
       "30000000-0000-4000-8000-000000000002",
     ];
-
-    if (!allowedDemoIds.includes(approvalId)) {
-      return NextResponse.json(
-        { ok: false, message: "This is not an approved demo record." },
-        { status: 403 }
-      );
-    }
 
     const { data: existing, error: lookupError } = await supabase
       .from("workflow_actions")
@@ -52,12 +44,32 @@ export async function PATCH(request: Request) {
       throw lookupError;
     }
 
+    const pendingStatuses = [
+      "pending",
+      "awaiting_approval",
+      "requires_human_approval",
+    ];
+
+    // Allowed: the seeded demo actions, or pending approval requests tied to
+    // a synthetic issue (those created by /api/approvals/request).
+    const issueRel = Array.isArray(existing?.operational_issues)
+      ? existing?.operational_issues[0]
+      : existing?.operational_issues;
+    const syntheticRef = issueRel?.synthetic_reference ?? null;
+
     if (
       !existing ||
+      !(seededDemoIds.includes(approvalId) || syntheticRef)
+    ) {
+      return NextResponse.json(
+        { ok: false, message: "This is not an approved demo record." },
+        { status: 403 }
+      );
+    }
+
+    if (
       existing.requires_human_approval !== true ||
-      !["pending", "awaiting_approval", "requires_human_approval"].includes(
-        existing.status
-      )
+      !pendingStatuses.includes(existing.status)
     ) {
       return NextResponse.json(
         {
@@ -109,7 +121,7 @@ export async function PATCH(request: Request) {
           decision,
           source: "HospitalFlow AI synthetic demo",
           synthetic_reference:
-            existing.operational_issues?.[0]?.synthetic_reference ?? null,
+            syntheticRef,
           note:
             decision === "approve"
               ? "Demo approval recorded; no real-world task was executed."
