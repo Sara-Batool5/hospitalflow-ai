@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
+import { getScopedSupabase } from "../../../../lib/supabaseScoped";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +27,7 @@ type AuditLog = {
 
 export async function GET() {
   try {
-    const supabase = getSupabaseAdmin();
+    const supabase = await getScopedSupabase();
 
     const [actionsResponse, logsResponse] = await Promise.all([
       supabase

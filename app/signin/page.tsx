@@ -19,13 +19,34 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSignIn(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSignIn(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (loading) return;
 
-    setMessage(
-      "Demo sign-in is not connected to real authentication yet. Use Continue as Demo to explore HospitalFlow AI."
-    );
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        setMessage(result.message || "Could not sign in. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      window.location.href = "/dashboard";
+    } catch {
+      setMessage("Could not reach the server. Please try again.");
+      setLoading(false);
+    }
   }
 
   return (
@@ -97,7 +118,7 @@ export default function SignInPage() {
 
             <div className="signin-heading">
               <h2>Welcome Back!</h2>
-              <p>Sign in to explore your operations workspace.</p>
+              <p>Sign in with any email to get your own private workspace.</p>
             </div>
 
             <form onSubmit={handleSignIn} className="signin-form">
@@ -123,7 +144,7 @@ export default function SignInPage() {
                   className="signin-forgot"
                   onClick={() =>
                     setMessage(
-                      "Password recovery is unavailable because real authentication has not been enabled for this demo."
+                      "Password recovery is not available in this demo. Use any email with a password you will remember, or a different email to start a fresh workspace."
                     )
                   }
                 >
@@ -158,8 +179,8 @@ export default function SignInPage() {
                 </div>
               )}
 
-              <button type="submit" className="signin-submit">
-                Sign In <ArrowRight size={18} />
+              <button type="submit" className="signin-submit" disabled={loading}>
+                {loading ? "Signing in…" : "Sign In"} <ArrowRight size={18} />
               </button>
             </form>
 
@@ -167,18 +188,18 @@ export default function SignInPage() {
               <span>OR</span>
             </div>
 
-            <Link href="/dashboard" className="signin-demo-button">
+            <a href="/api/auth/demo" className="signin-demo-button">
               Continue as Demo
               <ArrowRight size={17} />
-            </Link>
+            </a>
 
             <p className="signin-demo-note">
-              No account needed. Explore with synthetic demo data.
+              No account needed. Explore with synthetic demo data. Or sign in with any email to get a private workspace where you can upload your own files. New email? Choose a password and your workspace is created automatically.
             </p>
 
             <div className="signin-card-footer">
               <ShieldCheck size={15} />
-              Demo mode · No real authentication
+              Demo mode · Not for real patient data
             </div>
           </div>
 

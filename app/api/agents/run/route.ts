@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
+import { getScopedSupabase } from "../../../../lib/supabaseScoped";
 
 export const dynamic = "force-dynamic";
 
@@ -44,7 +44,7 @@ async function getAgentResult(
 
 export async function POST(request: Request) {
   try {
-    const supabase = getSupabaseAdmin();
+    const supabase = await getScopedSupabase();
 
     // Stage 1: Load records once for Intake and Bottleneck Detection.
     const { data, error } = await supabase

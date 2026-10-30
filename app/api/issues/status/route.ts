@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
+import { getScopedSupabase } from "../../../../lib/supabaseScoped";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +35,7 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const supabase = getSupabaseAdmin();
+    const supabase = await getScopedSupabase();
 
     let updateQuery = supabase
       .from("operational_issues")

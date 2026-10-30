@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "../../../lib/supabaseAdmin";
+import { getScopedSupabase } from "../../../lib/supabaseScoped";
 
 export const dynamic = "force-dynamic";
 
@@ -62,7 +62,7 @@ function mapIssueType(type: string) {
 
 export async function GET() {
   try {
-    const supabase = getSupabaseAdmin();
+    const supabase = await getScopedSupabase();
 
     const { data, error } = await supabase
       .from("operational_issues")

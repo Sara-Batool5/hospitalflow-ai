@@ -60,10 +60,10 @@ export default function HomePage() {
           </p>
 
           <div className="welcome-actions">
-            <Link href="/dashboard" className="welcome-primary">
+            <a href="/api/auth/demo" className="welcome-primary">
               Explore Demo Dashboard
               <ArrowRight size={18} />
-            </Link>
+            </a>
 
             <Link href="/signin" className="welcome-secondary">
               Sign in to explore

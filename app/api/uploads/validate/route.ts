@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
+import { getScopedSupabase } from "../../../../lib/supabaseScoped";
 
 export const dynamic = "force-dynamic";
 
@@ -141,7 +141,7 @@ export async function POST(request: Request) {
     const getValue = (cells: string[], header: string) =>
       (cells[headerIndex.get(header) ?? -1] ?? "").trim();
 
-    const supabase = getSupabaseAdmin();
+    const supabase = await getScopedSupabase();
     const [departmentsResult, existingResult] = await Promise.all([
       supabase.from("departments").select("id, name"),
       supabase.from("operational_issues").select("synthetic_reference"),

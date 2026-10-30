@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./brand-fix.css";
+import SessionBadge from "./components/SessionBadge";
 
 export const metadata: Metadata = {
   title: "HospitalFlow AI | Hospital Operations",
@@ -16,7 +17,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <SessionBadge />
+      </body>
     </html>
   );
 }

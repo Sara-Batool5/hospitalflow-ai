@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
+import { getScopedSupabase } from "../../../../lib/supabaseScoped";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,7 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const supabase = getSupabaseAdmin();
+    const supabase = await getScopedSupabase();
 
     const seededDemoIds = [
       "30000000-0000-4000-8000-000000000001",
