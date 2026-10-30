@@ -575,14 +575,16 @@ export default function Home() {
 
       await Promise.all([loadApprovals(), loadAuditEvents()]);
       setScanMessage(result.message || "Approval request created.");
+      window.alert(result.message || "Approval request created.");
       return true;
     } catch (error) {
-      setDataError(
+      const message =
         error instanceof Error
           ? error.message
-          : "Could not create the approval request."
-      );
+          : "Could not create the approval request.";
+      setDataError(message);
       setScanMessage("");
+      window.alert(message);
       return false;
     }
   }

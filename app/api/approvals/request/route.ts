@@ -92,9 +92,9 @@ export async function POST(request: Request) {
 
     // Try "pending" first; fall back if the database uses a different value.
     let inserted: { id: string; status: string } | null = null;
-    let lastError: { message: string; code?: string } | null = null;
+    let lastError: { message: string; code?: string; details?: string | null; hint?: string | null } | null = null;
 
-    for (const status of ["pending", "awaiting_approval"]) {
+    for (const status of ["pending", "awaiting_approval", "requires_human_approval"]) {
       const { data, error } = await supabase
         .from("workflow_actions")
         .insert({ ...basePayload, status })
@@ -109,9 +109,14 @@ export async function POST(request: Request) {
     }
 
     if (!inserted) {
-      console.error("Approval request insert failed:", lastError?.message);
+      console.error("Approval request insert failed:", lastError);
       return NextResponse.json(
-        { ok: false, message: "Could not create the approval request." },
+        {
+          ok: false,
+          message: `Could not create the approval request. Database said: ${
+            lastError?.message ?? "unknown error"
+          }${lastError?.hint ? " (hint: " + lastError.hint + ")" : ""}`,
+        },
         { status: 500 }
       );
     }
@@ -142,8 +147,17 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Approval request failed:", error);
+    const detail =
+      error instanceof Error
+        ? error.message
+        : typeof error === "object" && error && "message" in error
+          ? String((error as { message: unknown }).message)
+          : "unknown error";
     return NextResponse.json(
-      { ok: false, message: "Could not create the approval request." },
+      {
+        ok: false,
+        message: `Could not create the approval request. Details: ${detail}`,
+      },
       { status: 500 }
     );
   }
