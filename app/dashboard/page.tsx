@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -142,7 +143,25 @@ function IssueIcon({ type }: { type: Issue["icon"] }) {
   return <FileCheck2 size={19} />;
 }
 
+function Expandable({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`expandable ${open ? "open" : ""}`}>
+      <div className="expandable-body">{children}</div>
+      <button
+        type="button"
+        className="expandable-toggle"
+        onClick={() => setOpen((value) => !value)}
+      >
+        {open ? "Show less" : "Show full details"}
+        <ChevronDown size={15} style={{ transform: open ? "rotate(180deg)" : "none" }} />
+      </button>
+    </div>
+  );
+}
+
 export default function Home() {
+  const [agentTab, setAgentTab] = useState("intake");
   const [activeNav, setActiveNav] = useState("Dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -1217,7 +1236,35 @@ export default function Home() {
                   {scanRunning ? "Scanning…" : "Run demo scan"}
                 </button>
               </div>
-              {intakeResults && (
+              <div className="agent-tabs" role="tablist">
+                {([
+                  ["intake", "01", "Intake", intakeResults],
+                  ["bottleneck", "02", "Bottleneck", bottleneckResults],
+                  ["coordinator", "03", "Coordinator", coordinatorResults],
+                  ["communication", "04", "Communication", communicationResults],
+                  ["audit", "05", "Audit", auditResults],
+                ] as [string, string, string, unknown][]).map(([id, num, label, data]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="tab"
+                    aria-selected={agentTab === id}
+                    className={`agent-tab ${agentTab === id ? "active" : ""}`}
+                    onClick={() => setAgentTab(id)}
+                  >
+                    <span className="agent-tab-num">{num}</span>
+                    <span className="agent-tab-label">{label}</span>
+                    <span className={`agent-tab-dot ${data ? "done" : ""}`} title={data ? "Completed" : "Ready"} />
+                  </button>
+                ))}
+              </div>
+              {!({ intake: intakeResults, bottleneck: bottleneckResults, coordinator: coordinatorResults, communication: communicationResults, audit: auditResults } as Record<string, unknown>)[agentTab] && (
+                <div className="agent-empty">
+                  <strong>No results for this agent yet</strong>
+                  <p>Click “Run demo scan” to generate results, then they will appear here.</p>
+                </div>
+              )}
+              {agentTab === "intake" && intakeResults && (
                 <div className="panel" style={{ marginBottom: 20, padding: 20 }}>
                   <h2 style={{ marginTop: 0 }}>Intake Agent Results</h2>
                   <p>
@@ -1282,7 +1329,7 @@ export default function Home() {
                 </div>
               )}
        
-              {bottleneckResults && (
+              {agentTab === "bottleneck" && bottleneckResults && (
                 <div className="panel" style={{ marginBottom: 20, padding: 24 }}>
                   <div
                     style={{
@@ -1387,6 +1434,7 @@ export default function Home() {
                                   : "#f1f5f9";
               
                           return (
+<Expandable key={`${item.reference}-${index}`}>
                             <article
                               key={`${item.reference}-${index}`}
                               style={{
@@ -1461,6 +1509,7 @@ export default function Home() {
                                 responsible department.
                               </div>
                             </article>
+</Expandable>
                           );
                         })}
                       </div>
@@ -1481,7 +1530,7 @@ export default function Home() {
                 </div>
               )}
  
-              {coordinatorResults && (
+              {agentTab === "coordinator" && coordinatorResults && (
                 <div className="panel" style={{ marginBottom: 20, padding: 24 }}>
                   <div
                     style={{
@@ -1582,6 +1631,7 @@ export default function Home() {
                                   : { color: "#475569", background: "#f1f5f9" };
               
                           return (
+<Expandable key={item.reference}>
                             <article
                               key={item.reference}
                               style={{
@@ -1744,6 +1794,7 @@ export default function Home() {
                                 </div>
                               )}
                             </article>
+</Expandable>
                           );
                         })}
                       </div>
@@ -1764,7 +1815,7 @@ export default function Home() {
                 </div>
               )}
 
-              {communicationResults && (
+              {agentTab === "communication" && communicationResults && (
                 <div className="panel" style={{ marginBottom: 20, padding: 24 }}>
                   <div
                     style={{
@@ -1853,6 +1904,7 @@ export default function Home() {
                           const draftReady = item.status === "draft_ready";
               
                           return (
+<Expandable key={item.reference}>
                             <article
                               key={item.reference}
                               style={{
@@ -2097,6 +2149,7 @@ export default function Home() {
                                 </div>
                               )}
                             </article>
+</Expandable>
                           );
                         })}
                       </div>
@@ -2117,7 +2170,7 @@ export default function Home() {
                 </div>
               )}
 
-              {auditResults && (
+              {agentTab === "audit" && auditResults && (
                 <div className="panel" style={{ marginBottom: 20, padding: 24 }}>
                   <div
                     style={{
@@ -2209,6 +2262,7 @@ export default function Home() {
                             item.decision.toLowerCase().includes("review");
               
                           return (
+<Expandable key={item.actionId}>
                             <article
                               key={item.actionId}
                               style={{
@@ -2435,6 +2489,7 @@ export default function Home() {
                                 </div>
                               )}
                             </article>
+</Expandable>
                           );
                         })}
                       </div>

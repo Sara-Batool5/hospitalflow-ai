@@ -3820,3 +3820,27 @@ input:focus:not(:focus-visible) {
   }
 }
 
+
+
+/* ===== Agent workflow: tabs + expandable cards ===== */
+.agent-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:0 0 18px; padding:6px; background:var(--surface); border:1px solid var(--border); border-radius:14px; }
+.agent-tab { flex:1 1 150px; display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid transparent; border-radius:10px; background:transparent; color:var(--text-secondary); font:inherit; font-weight:600; cursor:pointer; transition:all .15s ease; }
+.agent-tab:hover { background:var(--surface-hover); color:var(--text); }
+.agent-tab.active { background:var(--teal-light); border-color:rgba(8,127,114,.35); color:var(--teal-dark); box-shadow:0 2px 8px rgba(8,127,114,.12); }
+.agent-tab-num { display:inline-grid; place-items:center; width:26px; height:26px; border-radius:8px; background:var(--surface-soft); border:1px solid var(--border); font-size:12px; font-weight:800; }
+.agent-tab.active .agent-tab-num { background:var(--teal); border-color:var(--teal); color:#fff; }
+.agent-tab-label { flex:1; text-align:left; }
+.agent-tab-dot { width:9px; height:9px; border-radius:50%; background:#cbd5e1; }
+.agent-tab-dot.done { background:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.18); }
+.agent-empty { padding:28px; text-align:center; border:1px dashed var(--border); border-radius:14px; background:var(--surface-soft); color:var(--text-secondary); margin-bottom:20px; }
+.agent-empty strong { color:var(--text); }
+.agent-empty p { margin:6px 0 0; }
+.expandable { position:relative; border-radius:12px; }
+.expandable-body { max-height:190px; overflow:hidden; position:relative; transition:max-height .25s ease; }
+.expandable-body::after { content:""; position:absolute; left:0; right:0; bottom:0; height:60px; background:linear-gradient(to bottom, rgba(255,255,255,0), var(--surface)); pointer-events:none; border-radius:0 0 12px 12px; }
+.expandable.open .expandable-body { max-height:4000px; }
+.expandable.open .expandable-body::after { display:none; }
+.expandable-toggle { display:flex; align-items:center; gap:6px; margin:8px auto 0; padding:6px 14px; border:1px solid var(--border); border-radius:999px; background:var(--surface); color:var(--teal-dark); font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+.expandable-toggle:hover { background:var(--teal-light); }
+.agent-tab-panel-note { color:var(--text-secondary); }
+@media (max-width: 700px) { .agent-tab { flex:1 1 45%; } }
