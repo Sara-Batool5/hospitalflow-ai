@@ -1,0 +1,10 @@
+/* Lift the header branding slightly so it no longer touches the divider line */
+.topbar .app-brand-fixed {
+  transform: translateY(-8px) !important;
+}
+
+@media (max-width: 768px) {
+  .topbar .app-brand-fixed {
+    transform: none !important;
+  }
+}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./brand-fix.css";
 
 export const metadata: Metadata = {
   title: "HospitalFlow AI | Hospital Operations",
