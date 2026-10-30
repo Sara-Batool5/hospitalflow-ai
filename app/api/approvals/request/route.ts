@@ -97,7 +97,12 @@ export async function POST(request: Request) {
     for (const status of ["pending", "awaiting_approval", "requires_human_approval"]) {
       const { data, error } = await supabase
         .from("workflow_actions")
-        .insert({ ...basePayload, status })
+        .insert({
+          id: crypto.randomUUID(),
+          ...basePayload,
+          status,
+          created_at: new Date().toISOString(),
+        })
         .select("id, status")
         .maybeSingle();
 
